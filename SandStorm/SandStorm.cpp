@@ -39,14 +39,14 @@ void SandStorm::Update(float deltaTime)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
-            if (map[x][y] != 0)
+            if (map[x][y] != 0) 
                 cells[x][y].Draw(x, y);
         }
     }
     
     DrawTexture(cursor, mouseX - 7, mouseY - 7, WHITE);
-
     DrawFPS(0, 0);
+
     DrawText(GetElementString().c_str(), 0, 24, 24, GREEN);
     EndDrawing();
 }
@@ -72,6 +72,7 @@ void SandStorm::UpdateCell(int x, int y, Element::Elements element)
     }
 }
 
+//TODO: automatically select element based on get key index
 void SandStorm::HandleCellSwitching()
 {
     if (IsKeyPressed(KEY_ONE))
