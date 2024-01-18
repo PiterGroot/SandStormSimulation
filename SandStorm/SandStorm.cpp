@@ -1,13 +1,15 @@
 #include "SandStorm.h"
-#include "Cell.h"
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
-//Cell* cells[WIDTH][HEIGHT];
-std::map<Vector2, Cell*> cells;
+int map[WIDTH][HEIGHT];
+Cell cells[WIDTH][HEIGHT];
 
-SandStorm::SandStorm() {}
+SandStorm::SandStorm() 
+{
+    elementRules = new ElementRules();
+}
 
 void SandStorm::Update(float deltaTime)
 {
@@ -15,25 +17,53 @@ void SandStorm::Update(float deltaTime)
     ClearBackground(BLACK);
 
     HandlePlacingCell();
-    for (int x = 0; x < WIDTH; x++) //loop over all cells
-    {
-        for (int y = 0; y < HEIGHT; y++)
-        {
-            if (cells[Vector2(x, y)] == nullptr)
-                continue;
 
-            if (cells[Vector2(x, y)]->element == 0)
-            {
-                cells[Vector2(x, y)]->Update(this);
-                cells[Vector2(x, y)]->Draw();
-            }
+    // Update cell positions
+    for (int x = 0; x < WIDTH; x++)
+    {
+        for (int y = HEIGHT - 2; y >= 0; y--) // Adjusted loop bounds
+        {
+            if (map[x][y] == 1)
+                UpdateCell(x, y, cells[x][y].element);
         }
     }
 
-    DrawFPS(0, 0); //draw current fps
+    // Draw cells
+    for (int x = 0; x < WIDTH; x++)
+    {
+        for (int y = 0; y < HEIGHT; y++)
+        {
+            if (map[x][y] == 1)
+                cells[x][y].Draw(x, y);
+        }
+    }
+
+    DrawFPS(0, 0);
     EndDrawing();
 }
 
+//Update cell based on its rules
+void SandStorm::UpdateCell(int x, int y, Element::Elements element)
+{
+    if (element == Element::Elements::SAND) 
+    {
+        for (const auto& rule : elementRules->sandRules)
+        {
+            Vector2 checkVector = elementRules->ruleValues[rule];
+            int xPos = checkVector.x;
+            int yPos = checkVector.y;
+
+            if (map[x + xPos][y + yPos] == 0) // Check if cell can move down
+            {
+                 map[x][y] = 0;
+                 map[x + xPos][y + yPos] = 1;
+                 break;
+            }
+        }
+    }
+}
+
+//Check for empty space to place cell
 void SandStorm::HandlePlacingCell()
 {
     if (IsMouseButtonDown(0)) { //TODO: handle position outside window
@@ -49,14 +79,9 @@ void SandStorm::HandlePlacingCell()
         int xPos = mousePosition.x;
         int yPos = mousePosition.y;
 
-        if (cells[Vector2(xPos, yPos)] != nullptr) 
-        {
-            if (cells[Vector2(xPos, yPos)]->element == 1) 
-            {
-                std::cout << "eeioeioe" << "\n";
-                return;
-            }
-        }
-        cells[Vector2(xPos, yPos)] = new Cell(xPos, yPos);
+        if (map[xPos][yPos] == 1)
+            return;
+
+        map[xPos][yPos] = 1;
     }
 }

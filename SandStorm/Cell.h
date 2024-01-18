@@ -1,24 +1,10 @@
 #pragma once
-#include "SandStorm.h"
+#include "Element.h"
 
 class Cell
 {
-	enum Element
-	{
-		Sand = 0
-    };
-
 public:
-	Cell() {};
-	Cell(int x, int y);
-
-	void Update(SandStorm* engine);
-	void Draw();
-
-	Element element = Element::Sand;
-
-private:
-	bool active = true;
-	Vector2 cellPosition;
+	void Draw(int x, int y);
+	Element::Elements element = Element::Elements::SAND;
 };
 
