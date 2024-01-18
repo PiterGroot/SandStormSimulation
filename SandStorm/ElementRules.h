@@ -10,10 +10,6 @@ class ElementRules
 public:
 	ElementRules();
 	std::map<Element::Elements, Color> cellColorValues;
-
-	Color sandColor = Color(255, 255, 0, 255);
-	Color waterColor = Color(0, 0, 255, 255);
-	Color wallColor = Color(255, 255, 255, 255);
 	
 	enum Rules
 	{
@@ -27,6 +23,10 @@ public:
 		DOWN_LEFT,
 	};
 
+	std::map<Element::Elements, std::vector<Rules>> getRuleSet;
 	std::map<Rules, Vector2> ruleValues;
+
 	std::vector<Rules> sandRules;
+	std::vector<Rules> waterRules;
+	std::vector<Rules> wallRules;
 };

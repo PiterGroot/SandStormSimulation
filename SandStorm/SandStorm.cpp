@@ -54,20 +54,20 @@ void SandStorm::Update(float deltaTime)
 //Update cell based on its rules
 void SandStorm::UpdateCell(int x, int y, Element::Elements element)
 {
-    if (element == Element::Elements::SAND) 
+    auto cellRuleSet = elementRules->getRuleSet[element];
+    for (const auto& rule : cellRuleSet)
     {
-        for (const auto& rule : elementRules->sandRules)
-        {
-            Vector2 checkVector = elementRules->ruleValues[rule];
-            int xPos = checkVector.x;
-            int yPos = checkVector.y;
+        Vector2 checkVector = elementRules->ruleValues[rule];
+        int xPos = checkVector.x;
+        int yPos = checkVector.y;
 
-            if (map[x + xPos][y + yPos] == 0) // Check if cell can move down
-            {
-                 map[x][y] = 0;
-                 map[x + xPos][y + yPos] = 1;
-                 break;
-            }
+        if (map[x + xPos][y + yPos] == 0)
+        {
+            map[x][y] = 0;
+            map[x + xPos][y + yPos] = 1;
+            cells[x + xPos][y + yPos].element = element;
+            cells[x + xPos][y + yPos].cellColor = elementRules->cellColorValues[element];
+            break;
         }
     }
 }
@@ -84,7 +84,7 @@ void SandStorm::HandleCellSwitching()
         currentElement = Element::Elements::WALL;
 }
 
-std::string SandStorm::GetElementString()
+std::string SandStorm::GetElementString() 
 {
     switch (static_cast<int>(currentElement))
     {
@@ -109,9 +109,9 @@ void SandStorm::HandlePlacingCell(int mouseX, int mouseY)
         if (map[mouseX][mouseY] != 0)
             return;
 
+        map[mouseX][mouseY] = static_cast<int>(currentElement);
         cells[mouseX][mouseY].element = currentElement;
         cells[mouseX][mouseY].cellColor = elementRules->cellColorValues[currentElement];
-        map[mouseX][mouseY] = static_cast<int>(currentElement);
     }
 
     if (IsMouseButtonDown(1))
