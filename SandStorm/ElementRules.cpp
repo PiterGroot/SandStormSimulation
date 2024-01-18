@@ -2,7 +2,15 @@
 
 ElementRules::ElementRules()
 {
-	ruleValues = {
+	cellColorValues =
+	{
+		{ Element::Elements::SAND,  sandColor},
+		{ Element::Elements::WATER, waterColor},
+		{ Element::Elements::WALL,  wallColor},
+	};
+	
+	ruleValues = 
+	{
 		{ UP,         Vector2(0, -1)},
 		{ RIGHT,      Vector2(1, 0)},
 		{ DOWN,       Vector2(0, 1)},
@@ -13,7 +21,8 @@ ElementRules::ElementRules()
 		{ DOWN_LEFT,  Vector2(-1, 1)},
 	};
 
-	sandRules = {
+	sandRules = 
+	{
 		DOWN,
 		DOWN_LEFT,
 		DOWN_RIGHT

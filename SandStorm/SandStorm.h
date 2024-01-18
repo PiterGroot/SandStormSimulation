@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <string>
 #include <map>
 
 #include "raylib.h"
@@ -11,12 +12,16 @@ class SandStorm
 {
 public:
 	SandStorm();
-
-	void HandlePlacingCell();
 	void Update(float deltaTime);
-	void UpdateCell(int x, int y, Element::Elements element);
 
 private:
+	void HandlePlacingCell(int mouseX, int mouseY);
+	void UpdateCell(int x, int y, Element::Elements element);
+	void HandleCellSwitching();
+	std::string GetElementString();
+
+	Element::Elements currentElement = Element::Elements::SAND;
+
 	ElementRules* elementRules = nullptr;
 	Texture2D cursor;
 };

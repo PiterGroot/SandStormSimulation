@@ -18,17 +18,18 @@ void SandStorm::Update(float deltaTime)
     ClearBackground(BLACK);
 
     Vector2 mousePosition = GetMousePosition();
-    int xMouse = static_cast<int>(mousePosition.x);
-    int yMouse = static_cast<int>(mousePosition.y);
+    int mouseX = static_cast<int>(mousePosition.x);
+    int mouseY = static_cast<int>(mousePosition.y);
 
-    HandlePlacingCell();
+    HandleCellSwitching();
+    HandlePlacingCell(mouseX, mouseY);
 
     // Update cell positions
     for (int x = 0; x < WIDTH; x++)
     {
         for (int y = HEIGHT - 2; y >= 0; y--) // Adjusted loop bounds
         {
-            if (map[x][y] == 1)
+            if (map[x][y] != 0)
                 UpdateCell(x, y, cells[x][y].element);
         }
     }
@@ -38,14 +39,15 @@ void SandStorm::Update(float deltaTime)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
-            if (map[x][y] == 1)
+            if (map[x][y] != 0)
                 cells[x][y].Draw(x, y);
         }
     }
+    
+    DrawTexture(cursor, mouseX - 7, mouseY - 7, WHITE);
 
-    DrawTexture(cursor, xMouse - 7, yMouse - 7, WHITE);
     DrawFPS(0, 0);
-
+    DrawText(GetElementString().c_str(), 0, 24, 24, GREEN);
     EndDrawing();
 }
 
@@ -70,25 +72,53 @@ void SandStorm::UpdateCell(int x, int y, Element::Elements element)
     }
 }
 
-//Check for empty space to place cell
-void SandStorm::HandlePlacingCell()
+void SandStorm::HandleCellSwitching()
 {
-    if (IsMouseButtonDown(0)) { //TODO: handle position outside window
+    if (IsKeyPressed(KEY_ONE))
+        currentElement = Element::Elements::SAND;
 
-        Vector2 mousePosition = GetMousePosition();
+    if (IsKeyPressed(KEY_TWO))
+        currentElement = Element::Elements::WATER;
 
-        bool outOfBoundsA = mousePosition.x > WIDTH || mousePosition.y > HEIGHT;
-        bool outOfBoundsB = mousePosition.x < 0 || mousePosition.y < 0;
+    if (IsKeyPressed(KEY_THREE))
+        currentElement = Element::Elements::WALL;
+}
 
-        if (outOfBoundsA || outOfBoundsB)
+std::string SandStorm::GetElementString()
+{
+    switch (static_cast<int>(currentElement))
+    {
+        case 1:  return "Sand";
+        case 2:  return "Water";
+        case 3:  return "Wall";
+        default: return "UNDIFINED";
+    }
+}
+
+//Check for empty space to place cell
+void SandStorm::HandlePlacingCell(int mouseX, int mouseY)
+{
+    bool outOfBoundsA = mouseX > WIDTH || mouseY > HEIGHT;
+    bool outOfBoundsB = mouseX < 0 || mouseY < 0;
+
+    if (outOfBoundsA || outOfBoundsB)
+        return;
+
+    if (IsMouseButtonDown(0)) 
+    { 
+        if (map[mouseX][mouseY] != 0)
             return;
 
-        int xPos = mousePosition.x;
-        int yPos = mousePosition.y;
+        cells[mouseX][mouseY].element = currentElement;
+        cells[mouseX][mouseY].cellColor = elementRules->cellColorValues[currentElement];
+        map[mouseX][mouseY] = static_cast<int>(currentElement);
+    }
 
-        if (map[xPos][yPos] == 1)
+    if (IsMouseButtonDown(1))
+    {
+        if (map[mouseX][mouseY] == 0)
             return;
 
-        map[xPos][yPos] = 1;
+        map[mouseX][mouseY] = 0;
     }
 }

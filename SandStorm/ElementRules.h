@@ -1,12 +1,20 @@
 #pragma once
 
 #include "raylib.h"
+#include "Element.h"
 #include <vector>
 #include <map>
 
 class ElementRules
 {
 public:
+	ElementRules();
+	std::map<Element::Elements, Color> cellColorValues;
+
+	Color sandColor = Color(255, 255, 0, 255);
+	Color waterColor = Color(0, 0, 255, 255);
+	Color wallColor = Color(255, 255, 255, 255);
+	
 	enum Rules
 	{
 		UP,
@@ -18,8 +26,7 @@ public:
 		DOWN_RIGHT,
 		DOWN_LEFT,
 	};
-	
-	ElementRules();
-	std::vector<Rules> sandRules;
+
 	std::map<Rules, Vector2> ruleValues;
+	std::vector<Rules> sandRules;
 };

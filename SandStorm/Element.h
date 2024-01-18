@@ -4,8 +4,9 @@ class Element
 public:
 	enum Elements
 	{
-		SAND,
-		WATER
+		SAND = 1,
+		WATER = 2,
+		WALL = 3
 	};
 };
 
