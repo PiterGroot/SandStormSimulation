@@ -18,4 +18,5 @@ public:
 
 private:
 	ElementRules* elementRules = nullptr;
+	Texture2D cursor;
 };

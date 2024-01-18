@@ -8,6 +8,7 @@ Cell cells[WIDTH][HEIGHT];
 
 SandStorm::SandStorm() 
 {
+    cursor = LoadTexture("Textures/cursor.png");
     elementRules = new ElementRules();
 }
 
@@ -15,6 +16,10 @@ void SandStorm::Update(float deltaTime)
 {
     BeginDrawing();
     ClearBackground(BLACK);
+
+    Vector2 mousePosition = GetMousePosition();
+    int xMouse = static_cast<int>(mousePosition.x);
+    int yMouse = static_cast<int>(mousePosition.y);
 
     HandlePlacingCell();
 
@@ -38,7 +43,9 @@ void SandStorm::Update(float deltaTime)
         }
     }
 
+    DrawTexture(cursor, xMouse - 7, yMouse - 7, WHITE);
     DrawFPS(0, 0);
+
     EndDrawing();
 }
 

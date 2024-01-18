@@ -5,8 +5,9 @@ constexpr auto SCREEN_HEIGHT = 512;
 
 int main()
 {
-    SandStorm* sandStorm = new SandStorm();
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "SandStorm Engine"); //create raylib window
+    DisableCursor();
+    SandStorm* sandStorm = new SandStorm();
     while (!WindowShouldClose())
     {
         float deltaTime = GetFrameTime(); //calculate deltaTime
