@@ -6,7 +6,8 @@ public:
 	{
 		SAND = 1,
 		WATER = 2,
-		WALL = 3
+		WALL = 3,
+		SMOKE = 4
 	};
 };
 

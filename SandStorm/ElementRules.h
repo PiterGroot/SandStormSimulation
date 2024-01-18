@@ -26,7 +26,9 @@ public:
 	std::map<Element::Elements, std::vector<Rules>> getRuleSet;
 	std::map<Rules, Vector2> ruleValues;
 
+private:
 	std::vector<Rules> sandRules;
 	std::vector<Rules> waterRules;
 	std::vector<Rules> wallRules;
+	std::vector<Rules> smokeRules;
 };

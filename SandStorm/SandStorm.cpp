@@ -82,6 +82,9 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_THREE))
         currentElement = Element::Elements::WALL;
+
+    if (IsKeyPressed(KEY_FOUR))
+        currentElement = Element::Elements::SMOKE;
 }
 
 std::string SandStorm::GetElementString() 
@@ -91,6 +94,7 @@ std::string SandStorm::GetElementString()
         case 1:  return "Sand";
         case 2:  return "Water";
         case 3:  return "Wall";
+        case 4:  return "Smoke";
         default: return "UNDIFINED";
     }
 }
@@ -109,7 +113,7 @@ void SandStorm::HandlePlacingCell(int mouseX, int mouseY)
         if (map[mouseX][mouseY] != 0)
             return;
 
-        map[mouseX][mouseY] = static_cast<int>(currentElement);
+        map[mouseX][mouseY] = 1;
         cells[mouseX][mouseY].element = currentElement;
         cells[mouseX][mouseY].cellColor = elementRules->cellColorValues[currentElement];
     }

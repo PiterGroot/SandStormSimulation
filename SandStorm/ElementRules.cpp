@@ -2,15 +2,25 @@
 
 ElementRules::ElementRules()
 {
+    //Adding new cells steps:
+    //  1. Add a new element type (Elements::Element)
+    //  2. Add a hotkey check for switching to new cell
+    //  3. Add string -> enum conversion for UI label
+    //  4. Add rules for new cell
+    //  5. Add color for new cell
+    //  6. Bind element to its ruleset
+
     // Initialize rule sets
     sandRules = { DOWN, DOWN_LEFT, DOWN_RIGHT };
     waterRules = { DOWN, DOWN_LEFT, DOWN_RIGHT, RIGHT, LEFT };
+    smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT }; //TODO: UP rule buggy
 
     // Initialize getRuleSet map
     getRuleSet = {
         { Element::Elements::SAND, sandRules },
         { Element::Elements::WATER, waterRules },
         { Element::Elements::WALL, wallRules },
+        { Element::Elements::SMOKE, smokeRules },
     };
 
     // Initialize cellColorValues map
@@ -18,6 +28,7 @@ ElementRules::ElementRules()
         { Element::Elements::SAND, Color(255, 255, 0, 255) },
         { Element::Elements::WATER, Color(0, 0, 255, 255) },
         { Element::Elements::WALL, Color(255, 255, 255, 255) },
+        { Element::Elements::SMOKE, Color(133, 133, 133, 255) }
     };
 
     // Initialize ruleValues map
