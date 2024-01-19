@@ -52,6 +52,9 @@ void SandStorm::Update(float deltaTime)
 //Update cell based on its rules
 void SandStorm::UpdateCell(Element::Elements element, int x, int y)
 {
+    if (element == Element::Elements::WALL) //skip walls
+        return;
+
     auto cellRuleSet = elementRules->getRuleSet[element];
     for (const auto& rule : cellRuleSet)
     {
@@ -64,7 +67,7 @@ void SandStorm::UpdateCell(Element::Elements element, int x, int y)
             map[x][y] = 0;
             map[x + xPos][y + yPos] = 1;
             cells[x + xPos][y + yPos].element = element;
-            cells[x + xPos][y + yPos].cellColor = elementRules->cellColorValues[element];
+            cells[x + xPos][y + yPos].cellColor = elementRules->GetCellColor(element);
             break;
         }
     }
@@ -104,7 +107,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
                 
                 map[(int)cellPosition.x][(int)cellPosition.y] = 1;
                 cells[(int)cellPosition.x][(int)cellPosition.y].element = currentElement;
-                cells[(int)cellPosition.x][(int)cellPosition.y].cellColor = elementRules->cellColorValues[currentElement];
+                cells[(int)cellPosition.x][(int)cellPosition.y].cellColor = elementRules->GetCellColor(currentElement);
             }
             else
             {

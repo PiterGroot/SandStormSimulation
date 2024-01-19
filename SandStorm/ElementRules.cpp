@@ -13,7 +13,7 @@ ElementRules::ElementRules()
     // Initialize rule sets
     sandRules = { DOWN, DOWN_LEFT, DOWN_RIGHT };
     waterRules = { DOWN, DOWN_LEFT, DOWN_RIGHT, RIGHT, LEFT };
-    smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT }; //TODO: UP rule buggy
+    smokeRules = { UP, UP_LEFT, UP_RIGHT }; //TODO: UP rule buggy
 
     // Initialize getRuleSet map
     getRuleSet = {
@@ -42,4 +42,16 @@ ElementRules::ElementRules()
         { DOWN_RIGHT, Vector2(1, 1) },
         { DOWN_LEFT, Vector2(-1, 1) },
     };
+}
+
+Color ElementRules::GetCellColor(Element::Elements element)
+{
+    Color baseColor = cellColorValues[element];
+
+    // adjust the RGB values randomly
+    int r = Clamp(baseColor.r + GetRandomValue(-randomColorVariation, randomColorVariation), 0, 255);
+    int g = Clamp(baseColor.g + GetRandomValue(-randomColorVariation, randomColorVariation), 0, 255);
+    int b = Clamp(baseColor.b + GetRandomValue(-randomColorVariation, randomColorVariation), 0, 255);
+
+    return Color(r, g, b, baseColor.a);
 }

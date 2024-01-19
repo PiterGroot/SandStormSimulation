@@ -147,6 +147,9 @@
     <ClInclude Include="ElementRules.h" />
     <ClInclude Include="SandStorm.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\cursor.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

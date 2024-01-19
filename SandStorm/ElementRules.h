@@ -1,6 +1,7 @@
 #pragma once
 
 #include "raylib.h"
+#include "raymath.h"
 #include "Element.h"
 #include <vector>
 #include <map>
@@ -9,7 +10,7 @@ class ElementRules
 {
 public:
 	ElementRules();
-	std::map<Element::Elements, Color> cellColorValues;
+	Color GetCellColor(Element::Elements element);
 	
 	enum Rules
 	{
@@ -27,6 +28,9 @@ public:
 	std::map<Rules, Vector2> ruleValues;
 
 private:
+	int randomColorVariation = 50;
+	std::map<Element::Elements, Color> cellColorValues;
+
 	std::vector<Rules> sandRules;
 	std::vector<Rules> waterRules;
 	std::vector<Rules> wallRules;
