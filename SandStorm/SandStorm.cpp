@@ -62,6 +62,9 @@ void SandStorm::UpdateCell(Element::Elements element, int x, int y)
         int xPos = checkVector.x;
         int yPos = checkVector.y;
 
+        if (IsOutOfBounds(x + xPos, y + yPos))
+            continue;
+
         if (map[x + xPos][y + yPos] == 0)
         {
             map[x][y] = 0;
@@ -83,10 +86,10 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         ManipulateCell(false, mouseX, mouseY);
 
     if (IsKeyPressed(KEY_LEFT_BRACKET)) //increasing brush size
-        brushSize = abs(brushSize - 1);
+        brushSize = std::max(brushSize - 1, 1);
         
     if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decreasing brush size
-        brushSize = abs(brushSize + 1);
+        brushSize++;
 }
 
 //Placing / destroying cells with mouse
