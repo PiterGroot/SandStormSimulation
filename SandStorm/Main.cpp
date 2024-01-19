@@ -6,6 +6,9 @@ constexpr auto SCREEN_HEIGHT = 512;
 int main()
 {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "SandStorm Engine"); //create raylib window
+    Image image = LoadImage("Textures/icon.png");
+    SetWindowIcon(image);
+
     DisableCursor();
     SandStorm* sandStorm = new SandStorm();
     while (!WindowShouldClose())
