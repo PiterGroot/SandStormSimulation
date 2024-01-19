@@ -15,12 +15,16 @@ public:
 	void Update(float deltaTime);
 
 private:
-	void HandlePlacingCell(int mouseX, int mouseY);
-	void UpdateCell(int x, int y, Element::Elements element);
+	void HandleInput(int mouseX, int mouseY);
+	void UpdateCell(Element::Elements element, int x, int y);
 	void HandleCellSwitching();
+	void ManipulateCell(bool state, int x, int y);
+
+	bool IsOutOfBounds(int x, int y);
 	std::string GetElementString();
 
 	Element::Elements currentElement = Element::Elements::SAND;
+	int brushSize = 5;
 
 	ElementRules* elementRules = nullptr;
 	Texture2D cursor;

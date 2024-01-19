@@ -14,15 +14,10 @@ SandStorm::SandStorm()
 
 void SandStorm::Update(float deltaTime)
 {
-    BeginDrawing();
-    ClearBackground(BLACK);
-
     Vector2 mousePosition = GetMousePosition();
-    int mouseX = static_cast<int>(mousePosition.x);
-    int mouseY = static_cast<int>(mousePosition.y);
-
+   
     HandleCellSwitching();
-    HandlePlacingCell(mouseX, mouseY);
+    HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
     // Update cell positions
     for (int x = 0; x < WIDTH; x++)
@@ -30,10 +25,13 @@ void SandStorm::Update(float deltaTime)
         for (int y = HEIGHT - 2; y >= 0; y--) // Adjusted loop bounds
         {
             if (map[x][y] != 0)
-                UpdateCell(x, y, cells[x][y].element);
+                UpdateCell(cells[x][y].element, x, y);
         }
     }
 
+    BeginDrawing();
+    ClearBackground(BLACK);
+  
     // Draw cells
     for (int x = 0; x < WIDTH; x++)
     {
@@ -44,7 +42,7 @@ void SandStorm::Update(float deltaTime)
         }
     }
     
-    DrawTexture(cursor, mouseX - 7, mouseY - 7, WHITE);
+    DrawTexture(cursor, (int)mousePosition.x - 7, (int)mousePosition.y - 7, WHITE);
     DrawFPS(0, 0);
 
     DrawText(GetElementString().c_str(), 0, 24, 24, GREEN);
@@ -52,7 +50,7 @@ void SandStorm::Update(float deltaTime)
 }
 
 //Update cell based on its rules
-void SandStorm::UpdateCell(int x, int y, Element::Elements element)
+void SandStorm::UpdateCell(Element::Elements element, int x, int y)
 {
     auto cellRuleSet = elementRules->getRuleSet[element];
     for (const auto& rule : cellRuleSet)
@@ -68,6 +66,50 @@ void SandStorm::UpdateCell(int x, int y, Element::Elements element)
             cells[x + xPos][y + yPos].element = element;
             cells[x + xPos][y + yPos].cellColor = elementRules->cellColorValues[element];
             break;
+        }
+    }
+}
+
+//Input ceck for manipulating cells
+void SandStorm::HandleInput(int mouseX, int mouseY)
+{
+    if (IsMouseButtonDown(0)) //placin cells
+        ManipulateCell(true, mouseX, mouseY);
+
+    if (IsMouseButtonDown(1)) //removing cells
+        ManipulateCell(false, mouseX, mouseY);
+
+    if (IsKeyPressed(KEY_LEFT_BRACKET)) //increasing brush size
+        brushSize = abs(brushSize - 1);
+        
+    if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decreasing brush size
+        brushSize = abs(brushSize + 1);
+}
+
+//Placing / destroying cells with mouse
+void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
+{
+    for (int x = -brushSize; x < brushSize; x++)
+    {
+        for (int y = -brushSize; y < brushSize; y++)
+        {
+            Vector2 cellPosition = Vector2(x + xPos, y + yPos);
+            if (IsOutOfBounds(cellPosition.x, cellPosition.y))
+                continue;
+
+            if (state) //Place cell 
+            {
+                if (map[(int)cellPosition.x][(int)cellPosition.y] != 0)
+                    continue;
+                
+                map[(int)cellPosition.x][(int)cellPosition.y] = 1;
+                cells[(int)cellPosition.x][(int)cellPosition.y].element = currentElement;
+                cells[(int)cellPosition.x][(int)cellPosition.y].cellColor = elementRules->cellColorValues[currentElement];
+            }
+            else
+            {
+                map[(int)cellPosition.x][(int)cellPosition.y] = 0;
+            }
         }
     }
 }
@@ -88,42 +130,25 @@ void SandStorm::HandleCellSwitching()
         currentElement = Element::Elements::SMOKE;
 }
 
-std::string SandStorm::GetElementString() 
+
+//Checks if given position is outside the window
+bool SandStorm::IsOutOfBounds(int posX, int posY)
+{
+    bool outOfBoundsA = posX > WIDTH || posY > HEIGHT;
+    bool outOfBoundsB = posX < 0 || posY < 0;
+
+    return outOfBoundsA || outOfBoundsB;
+}
+
+//Convert current element enum value to string for UI label
+std::string SandStorm::GetElementString()
 {
     switch (static_cast<int>(currentElement))
     {
-        case 1:  return "Sand";
-        case 2:  return "Water";
-        case 3:  return "Wall";
-        case 4:  return "Smoke";
-        default: return "UNDIFINED";
-    }
-}
-
-//Check for empty space to place cell
-void SandStorm::HandlePlacingCell(int mouseX, int mouseY)
-{
-    bool outOfBoundsA = mouseX > WIDTH || mouseY > HEIGHT;
-    bool outOfBoundsB = mouseX < 0 || mouseY < 0;
-
-    if (outOfBoundsA || outOfBoundsB)
-        return;
-
-    if (IsMouseButtonDown(0)) 
-    { 
-        if (map[mouseX][mouseY] != 0)
-            return;
-
-        map[mouseX][mouseY] = 1;
-        cells[mouseX][mouseY].element = currentElement;
-        cells[mouseX][mouseY].cellColor = elementRules->cellColorValues[currentElement];
-    }
-
-    if (IsMouseButtonDown(1))
-    {
-        if (map[mouseX][mouseY] == 0)
-            return;
-
-        map[mouseX][mouseY] = 0;
+        case 1:  return "Sand " + std::to_string(brushSize);
+        case 2:  return "Water " + std::to_string(brushSize);
+        case 3:  return "Wall " + std::to_string(brushSize);
+        case 4:  return "Smoke " + std::to_string(brushSize);
+        default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }
