@@ -12,8 +12,8 @@ ElementRules::ElementRules()
 
     // Initialize rule sets
     sandRules = { DOWN, DOWN_LEFT, DOWN_RIGHT };
-    waterRules = { DOWN, DOWN_LEFT, DOWN_RIGHT, RIGHT, LEFT };
-    smokeRules = { UP, UP_LEFT, UP_RIGHT }; //TODO: UP rule buggy
+    waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
+    smokeRules = { UP }; //TODO: UP rule buggy
 
     // Initialize getRuleSet map
     getRuleSet = {
@@ -21,6 +21,7 @@ ElementRules::ElementRules()
         { Element::Elements::WATER, waterRules },
         { Element::Elements::WALL, wallRules },
         { Element::Elements::SMOKE, smokeRules },
+        { Element::Elements::WOOD, woodRules }
     };
 
     // Initialize cellColorValues map
@@ -28,7 +29,8 @@ ElementRules::ElementRules()
         { Element::Elements::SAND, Color(255, 255, 0, 255) },
         { Element::Elements::WATER, Color(0, 0, 255, 255) },
         { Element::Elements::WALL, Color(255, 255, 255, 255) },
-        { Element::Elements::SMOKE, Color(133, 133, 133, 255) }
+        { Element::Elements::SMOKE, Color(133, 133, 133, 255) },
+        { Element::Elements::WOOD, Color(92, 32, 0, 255) }
     };
 
     // Initialize ruleValues map

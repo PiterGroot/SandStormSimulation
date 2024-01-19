@@ -6,10 +6,15 @@ constexpr auto HEIGHT = 512;
 int map[WIDTH][HEIGHT];
 Cell cells[WIDTH][HEIGHT];
 
-SandStorm::SandStorm() 
+SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
     elementRules = new ElementRules();
+}
+
+SandStorm::~SandStorm() //deconstructor
+{
+    delete elementRules;
 }
 
 void SandStorm::Update(float deltaTime)
@@ -19,13 +24,14 @@ void SandStorm::Update(float deltaTime)
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
-    // Update cell positions
+    //Update cell positions
     for (int x = 0; x < WIDTH; x++)
     {
-        for (int y = HEIGHT - 2; y >= 0; y--) // Adjusted loop bounds
+        for (int y = HEIGHT - 2; y >= 0; y--)
         {
-            if (map[x][y] != 0)
+            if (map[x][y] != 0) {
                 UpdateCell(cells[x][y].element, x, y);
+            }
         }
     }
 
@@ -103,7 +109,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
             if (IsOutOfBounds(cellPosition.x, cellPosition.y))
                 continue;
 
-            if (state) //Place cell 
+            if (state) //placing cells 
             {
                 if (map[(int)cellPosition.x][(int)cellPosition.y] != 0)
                     continue;
@@ -112,7 +118,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
                 cells[(int)cellPosition.x][(int)cellPosition.y].element = currentElement;
                 cells[(int)cellPosition.x][(int)cellPosition.y].cellColor = elementRules->GetCellColor(currentElement);
             }
-            else
+            else //removing cells
             {
                 map[(int)cellPosition.x][(int)cellPosition.y] = 0;
             }
@@ -120,7 +126,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
     }
 }
 
-//TODO: automatically select element based on get key index
+//Switching between elements
 void SandStorm::HandleCellSwitching()
 {
     if (IsKeyPressed(KEY_ONE))
@@ -134,8 +140,10 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_FOUR))
         currentElement = Element::Elements::SMOKE;
-}
 
+    if (IsKeyPressed(KEY_FIVE))
+        currentElement = Element::Elements::WOOD;
+}
 
 //Checks if given position is outside the window
 bool SandStorm::IsOutOfBounds(int posX, int posY)
@@ -155,6 +163,7 @@ std::string SandStorm::GetElementString()
         case 2:  return "Water " + std::to_string(brushSize);
         case 3:  return "Wall " + std::to_string(brushSize);
         case 4:  return "Smoke " + std::to_string(brushSize);
+        case 5:  return "Wood " + std::to_string(brushSize);
         default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }

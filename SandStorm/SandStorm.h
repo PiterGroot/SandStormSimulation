@@ -12,6 +12,8 @@ class SandStorm
 {
 public:
 	SandStorm();
+	~SandStorm();
+
 	void Update(float deltaTime);
 
 private:
