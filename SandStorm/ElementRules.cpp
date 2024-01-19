@@ -11,49 +11,40 @@ ElementRules::ElementRules()
     //  6. Bind element to its ruleset
 
     // Initialize rule sets
-    sandRules = { DOWN, DOWN_LEFT, DOWN_RIGHT };
+    sandRules =  { DOWN, DOWN_LEFT, DOWN_RIGHT };
     waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    smokeRules = { UP }; //TODO: UP rule buggy
 
     // Initialize getRuleSet map
     getRuleSet = {
-        { Element::Elements::SAND, sandRules },
+        { Element::Elements::SAND,  sandRules },
         { Element::Elements::WATER, waterRules },
-        { Element::Elements::WALL, wallRules },
-        { Element::Elements::SMOKE, smokeRules },
-        { Element::Elements::WOOD, woodRules }
+        { Element::Elements::WALL,  wallRules },
     };
 
     // Initialize cellColorValues map
     cellColorValues = {
-        { Element::Elements::SAND, Color(255, 255, 0, 255) },
+        { Element::Elements::SAND,  Color(255, 255, 0, 255) },
         { Element::Elements::WATER, Color(0, 0, 255, 255) },
-        { Element::Elements::WALL, Color(255, 255, 255, 255) },
-        { Element::Elements::SMOKE, Color(133, 133, 133, 255) },
-        { Element::Elements::WOOD, Color(92, 32, 0, 255) }
+        { Element::Elements::WALL,  Color(255, 255, 255, 255) },
     };
 
     // Initialize ruleValues map
     ruleValues = {
-        { UP, Vector2(0, -1) },
-        { RIGHT, Vector2(1, 0) },
-        { DOWN, Vector2(0, 1) },
-        { LEFT, Vector2(-1, 0) },
-        { UP_RIGHT, Vector2(1, -1) },
-        { UP_LEFT, Vector2(-1, -1) },
-        { DOWN_RIGHT, Vector2(1, 1) },
-        { DOWN_LEFT, Vector2(-1, 1) },
+        { UP,         Vector2(0, -1) },
+        { RIGHT,      Vector2(1, 0)  },
+        { DOWN,       Vector2(0, 1)  },
+        { LEFT,       Vector2(-1, 0) },
+        { UP_RIGHT,   Vector2(1, -1) },
+        { UP_LEFT,    Vector2(-1, -1)},
+        { DOWN_RIGHT, Vector2(1, 1)  },
+        { DOWN_LEFT,  Vector2(-1, 1) },
     };
 }
 
 Color ElementRules::GetCellColor(Element::Elements element)
 {
     Color baseColor = cellColorValues[element];
-
-    // adjust the RGB values randomly
-    int r = Clamp(baseColor.r + GetRandomValue(-randomColorVariation, randomColorVariation), 0, 255);
-    int g = Clamp(baseColor.g + GetRandomValue(-randomColorVariation, randomColorVariation), 0, 255);
-    int b = Clamp(baseColor.b + GetRandomValue(-randomColorVariation, randomColorVariation), 0, 255);
-
-    return Color(r, g, b, baseColor.a);
+    
+    int randAlpha = GetRandomValue(200, 255); // randomize alpha
+    return Color(baseColor.r, baseColor.g, baseColor.b, randAlpha);
 }

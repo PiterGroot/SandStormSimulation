@@ -25,9 +25,10 @@ private:
 	bool IsOutOfBounds(int x, int y);
 	std::string GetElementString();
 
-	Element::Elements currentElement = Element::Elements::SAND;
-	int brushSize = 5;
-
 	ElementRules* elementRules = nullptr;
+	Element::Elements currentElement = Element::Elements::SAND;
+
 	Texture2D cursor;
+	int cursorOrigin = 7;
+	int brushSize = 5;
 };

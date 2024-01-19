@@ -34,6 +34,4 @@ private:
 	std::vector<Rules> sandRules;
 	std::vector<Rules> waterRules;
 	std::vector<Rules> wallRules;
-	std::vector<Rules> smokeRules;
-	std::vector<Rules> woodRules;
 };
