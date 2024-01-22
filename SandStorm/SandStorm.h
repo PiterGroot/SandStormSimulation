@@ -6,7 +6,6 @@
 #include "raylib.h"
 #include "ElementRules.h"
 #include "raymath.h"
-#include "Cell.h"
 
 class SandStorm 
 {
@@ -18,7 +17,7 @@ public:
 
 private:
 	void HandleInput(int mouseX, int mouseY);
-	void UpdateCell(Element::Elements element, int x, int y);
+	void UpdateCell(int x, int y);
 	void HandleCellSwitching();
 	void ManipulateCell(bool state, int x, int y);
 

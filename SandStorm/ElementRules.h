@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "Element.h"
+#include <unordered_map>
 #include <vector>
 #include <map>
 
@@ -29,9 +30,9 @@ public:
 
 private:
 	int randomColorVariation = 50;
-	std::map<Element::Elements, Color> cellColorValues;
 
 	std::vector<Rules> sandRules;
 	std::vector<Rules> waterRules;
 	std::vector<Rules> wallRules;
+	std::vector<Rules> testRules;
 };

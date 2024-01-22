@@ -1,17 +1,28 @@
 #include "SandStorm.h"
 
-int UNOCCUPIED_CELL = 0;
+int UNOCCUPIED_CELL { 0 };
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
-int map[WIDTH][HEIGHT];
-Cell cells[WIDTH][HEIGHT];
+int pixels[WIDTH * HEIGHT * 4];
+
+Image screenImage;
+Texture screenTexture;
 
 SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
     elementRules = new ElementRules();
+    
+    //screenImage = GenImageColor(WIDTH, HEIGHT, BLACK);
+    screenImage.data = pixels;
+    screenImage.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+    screenImage.width = WIDTH;
+    screenImage.height = HEIGHT;
+    screenImage.mipmaps = 1;
+
+    screenTexture = LoadTextureFromImage(screenImage);
 }
 
 SandStorm::~SandStorm() //deconstructor
@@ -22,44 +33,44 @@ SandStorm::~SandStorm() //deconstructor
 void SandStorm::Update(float deltaTime)
 {
     Vector2 mousePosition = GetMousePosition();
-   
+    
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
     //Update all active cells
     for (int x = 0; x < WIDTH; x++)
     {
-        for (int y = HEIGHT - 2; y >= 0; y--)
+        for (int y = 0; y < HEIGHT; y++)
         {
-            if (map[x][y] != UNOCCUPIED_CELL)
-                UpdateCell(cells[x][y].element, x, y);
+            //UpdateCell(x, y);
         }
     }
-  
+    UpdateTexture(screenTexture, pixels); //draw all updated cells
+
     BeginDrawing();
     ClearBackground(BLACK);
 
-    // Draw all active cells
-    for (int x = 0; x < WIDTH; x++)
-    {
-        for (int y = 0; y < HEIGHT; y++)
-        {
-            if (map[x][y] != UNOCCUPIED_CELL)
-                cells[x][y].Draw(x, y);
-        }
-    }
+    DrawTexture(screenTexture, 0, 0, WHITE);
     
     //draw custom cursor
     Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
     DrawTexture(cursor, cursorPosition.x, cursorPosition.y, WHITE);
+    
     DrawFPS(0, 0); //draw fps
     DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
     EndDrawing();
 }
 
 //Update cell based on its rules
-void SandStorm::UpdateCell(Element::Elements element, int x, int y)
+void SandStorm::UpdateCell(int x, int y)
 {
+    int index = (x + y * WIDTH) * 4;
+    if (pixels[index + 3] == UNOCCUPIED_CELL)
+        return;
+
+    Element::Elements element = Element::SAND;
+    //Element::Elements element = elementRules->cellColorValues[Color(index, (int)pixels[index + 1], (int)pixels[index + 2], 255)];
+
     if (element == Element::Elements::WALL) //skip walls
         return;
 
@@ -73,18 +84,56 @@ void SandStorm::UpdateCell(Element::Elements element, int x, int y)
         if (IsOutOfBounds(x + xPos, y + yPos)) //check if next position would be out of bounds
             continue;
 
-        if (map[x + xPos][y + yPos] == UNOCCUPIED_CELL) //if next space is unoccupied 
+        int nextIndex = (x + xPos + y + yPos * WIDTH) * 4;
+        if (pixels[nextIndex + 3] == UNOCCUPIED_CELL) //if next space is unoccupied 
         {
-            map[x][y] = UNOCCUPIED_CELL;
-            map[x + xPos][y + yPos] = element;
-            cells[x + xPos][y + yPos].element = element;
-            cells[x + xPos][y + yPos].cellColor = elementRules->GetCellColor(element);
+            Color cellColor = elementRules->GetCellColor(element);
+            pixels[index + 3] = UNOCCUPIED_CELL;
+            
+            pixels[index] = cellColor.r;
+            pixels[index + 1] = cellColor.g;
+            pixels[index + 2] = cellColor.b;
+            pixels[index + 3] = 255;
             break;
         }
     }
 }
 
-//Input ceck for manipulating cells
+//Placing / destroying cells with mouse
+void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
+{
+    /*for (int x = -brushSize; x < brushSize; x++)
+    {
+        for (int y = -brushSize; y < brushSize; y++)
+        {
+            
+        }
+    }*/
+
+    if (IsOutOfBounds(xPos, yPos)) //check for all brush positions if it is out of bounds
+        return;
+
+    int index = (xPos + yPos * WIDTH) * 4;
+    if (state) //placing cells 
+    {
+        if (pixels[index + 3] != UNOCCUPIED_CELL) //check if chosen space is unoccupied
+            return;
+
+        pixels[index] = 255;
+        pixels[index + 1] = 255;
+        pixels[index + 2] = 255;
+        pixels[index + 3] = 255;
+    }
+    else //removing cells
+    {
+        pixels[index] = 0;
+        pixels[index + 1] = 0;
+        pixels[index + 2] = 0;
+        pixels[index + 3] = 0;
+    }
+}
+
+//General input checks
 void SandStorm::HandleInput(int mouseX, int mouseY)
 {
     if (IsMouseButtonDown(0)) //placin cells
@@ -100,34 +149,6 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         brushSize++;
 }
 
-//Placing / destroying cells with mouse
-void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
-{
-    for (int x = -brushSize; x < brushSize; x++)
-    {
-        for (int y = -brushSize; y < brushSize; y++)
-        {
-            Vector2 cellPosition = Vector2(x + xPos, y + yPos);
-            if (IsOutOfBounds(cellPosition.x, cellPosition.y)) //check for all positions if it is out of bounds
-                continue;
-
-            if (state) //placing cells 
-            {
-                if (map[(int)cellPosition.x][(int)cellPosition.y] != UNOCCUPIED_CELL) //check if chosen space is unoccupied
-                    continue;
-                
-                map[(int)cellPosition.x][(int)cellPosition.y] = currentElement;
-                cells[(int)cellPosition.x][(int)cellPosition.y].element = currentElement;
-                cells[(int)cellPosition.x][(int)cellPosition.y].cellColor = elementRules->GetCellColor(currentElement);
-            }
-            else //removing cells
-            {
-                map[(int)cellPosition.x][(int)cellPosition.y] = UNOCCUPIED_CELL;
-            }
-        }
-    }
-}
-
 //Switching between elements
 void SandStorm::HandleCellSwitching()
 {
@@ -139,6 +160,9 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_THREE))
         currentElement = Element::Elements::WALL;
+
+    if (IsKeyPressed(KEY_FOUR))
+        currentElement = Element::Elements::TEST;
 }
 
 //Checks if given position is outside the window
@@ -158,6 +182,7 @@ std::string SandStorm::GetElementString()
         case 1:  return "Sand " +      std::to_string(brushSize);
         case 2:  return "Water " +     std::to_string(brushSize);
         case 3:  return "Wall " +      std::to_string(brushSize);
+        case 4:  return "Test " +      std::to_string(brushSize);
         default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }
