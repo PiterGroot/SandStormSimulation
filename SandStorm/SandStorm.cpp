@@ -5,24 +5,13 @@ int UNOCCUPIED_CELL { 0 };
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
-int pixels[WIDTH * HEIGHT * 4];
-
-Image screenImage;
-Texture screenTexture;
+RenderTexture2D target;
 
 SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
+    target = LoadRenderTexture(WIDTH, HEIGHT);
     elementRules = new ElementRules();
-    
-    //screenImage = GenImageColor(WIDTH, HEIGHT, BLACK);
-    screenImage.data = pixels;
-    screenImage.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-    screenImage.width = WIDTH;
-    screenImage.height = HEIGHT;
-    screenImage.mipmaps = 1;
-
-    screenTexture = LoadTextureFromImage(screenImage);
 }
 
 SandStorm::~SandStorm() //deconstructor
@@ -42,15 +31,14 @@ void SandStorm::Update(float deltaTime)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
-            //UpdateCell(x, y);
+            UpdateCell(x, y);
         }
     }
-    UpdateTexture(screenTexture, pixels); //draw all updated cells
 
     BeginDrawing();
     ClearBackground(BLACK);
 
-    DrawTexture(screenTexture, 0, 0, WHITE);
+    DrawTextureRec(target.texture, Rectangle(0, 0, (float)target.texture.width, (float)-target.texture.height), Vector2(0, 0), WHITE);
     
     //draw custom cursor
     Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
@@ -64,72 +52,48 @@ void SandStorm::Update(float deltaTime)
 //Update cell based on its rules
 void SandStorm::UpdateCell(int x, int y)
 {
-    int index = (x + y * WIDTH) * 4;
-    if (pixels[index + 3] == UNOCCUPIED_CELL)
-        return;
+    //Element::Elements element = Element::SAND;
+    ////Element::Elements element = elementRules->cellColorValues[Color(index, (int)pixels[index + 1], (int)pixels[index + 2], 255)];
 
-    Element::Elements element = Element::SAND;
-    //Element::Elements element = elementRules->cellColorValues[Color(index, (int)pixels[index + 1], (int)pixels[index + 2], 255)];
+    //if (element == Element::Elements::WALL) //skip walls
+    //    return;
 
-    if (element == Element::Elements::WALL) //skip walls
-        return;
+    //auto cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
+    //for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
+    //{
+    //    Vector2 checkVector = elementRules->ruleValues[rule];
+    //    int xPos = checkVector.x;
+    //    int yPos = checkVector.y;
 
-    auto cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
-    for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
-    {
-        Vector2 checkVector = elementRules->ruleValues[rule];
-        int xPos = checkVector.x;
-        int yPos = checkVector.y;
+    //    if (IsOutOfBounds(x + xPos, y + yPos)) //check if next position would be out of bounds
+    //        continue;
 
-        if (IsOutOfBounds(x + xPos, y + yPos)) //check if next position would be out of bounds
-            continue;
-
-        int nextIndex = (x + xPos + y + yPos * WIDTH) * 4;
-        if (pixels[nextIndex + 3] == UNOCCUPIED_CELL) //if next space is unoccupied 
-        {
-            Color cellColor = elementRules->GetCellColor(element);
-            pixels[index + 3] = UNOCCUPIED_CELL;
-            
-            pixels[index] = cellColor.r;
-            pixels[index + 1] = cellColor.g;
-            pixels[index + 2] = cellColor.b;
-            pixels[index + 3] = 255;
-            break;
-        }
-    }
+    //    int nextIndex = (x + xPos + y + yPos * WIDTH) * 4;
+    //    if (pixels[nextIndex + 3] == UNOCCUPIED_CELL) //if next space is unoccupied 
+    //    {
+    //        Color cellColor = elementRules->GetCellColor(element);
+    //        pixels[index + 3] = UNOCCUPIED_CELL;
+    //        
+    //        pixels[index] = cellColor.r;
+    //        pixels[index + 1] = cellColor.g;
+    //        pixels[index + 2] = cellColor.b;
+    //        pixels[index + 3] = 255;
+    //        break;
+    //    }
+    //}
 }
 
 //Placing / destroying cells with mouse
 void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
 {
-    /*for (int x = -brushSize; x < brushSize; x++)
-    {
-        for (int y = -brushSize; y < brushSize; y++)
-        {
-            
-        }
-    }*/
-
     if (IsOutOfBounds(xPos, yPos)) //check for all brush positions if it is out of bounds
         return;
 
-    int index = (xPos + yPos * WIDTH) * 4;
     if (state) //placing cells 
     {
-        if (pixels[index + 3] != UNOCCUPIED_CELL) //check if chosen space is unoccupied
-            return;
-
-        pixels[index] = 255;
-        pixels[index + 1] = 255;
-        pixels[index + 2] = 255;
-        pixels[index + 3] = 255;
-    }
-    else //removing cells
-    {
-        pixels[index] = 0;
-        pixels[index + 1] = 0;
-        pixels[index + 2] = 0;
-        pixels[index + 3] = 0;
+        BeginTextureMode(target);
+        DrawRectangle(xPos, yPos, brushSize, brushSize, WHITE);
+        EndTextureMode();
     }
 }
 
