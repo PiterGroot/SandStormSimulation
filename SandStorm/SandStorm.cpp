@@ -24,9 +24,7 @@ SandStorm::SandStorm() //constructor
     }
 
     int centerPosition = 256 + WIDTH * 256;
-    int centerPosition1 = 256 + WIDTH * 255;
     pixels[centerPosition] = GOLD;
-    //pixels[centerPosition1] = RED;
 
     screenImage.data = pixels;
     elementRules = new ElementRules();
@@ -40,14 +38,14 @@ SandStorm::~SandStorm() //deconstructor
 void SandStorm::Update(float deltaTime)
 {
     Vector2 mousePosition = GetMousePosition();
-    
+
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
     //Update all active cells
     for (int x = 0; x < WIDTH; x++)
     {
-        for (int y = 0; y < HEIGHT; y++)
+        for (int y = 0; y < HEIGHT - 1; y++)
         {
             UpdateCell(x, y);
         }
@@ -58,11 +56,11 @@ void SandStorm::Update(float deltaTime)
     ClearBackground(BLACK);
 
     DrawTexture(screenTexture, 0, 0, WHITE);
-    
+
     //draw custom cursor
     Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
     DrawTexture(cursor, cursorPosition.x, cursorPosition.y, WHITE);
-    
+
     DrawFPS(0, 0); //draw fps
     DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
     EndDrawing();
@@ -99,13 +97,17 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
     if (IsOutOfBounds(xPos, yPos)) //check for all brush positions if it is out of bounds
         return;
 
+    int index = xPos + WIDTH * yPos;
     if (state) //placing cells 
     {
-        int index = xPos + WIDTH * yPos;
-        if(CompareColor(pixels[index], UNOCCUPIED_CELL))
+        if (CompareColor(pixels[index], UNOCCUPIED_CELL))
         {
             pixels[index] = GOLD;
         }
+    }
+    else
+    {
+        pixels[index] = UNOCCUPIED_CELL;
     }
 }
 
@@ -120,9 +122,36 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
 
     if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
         brushSize = std::max(brushSize - 1, 1);
-        
+
     if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decrease brush size
         brushSize++;
+
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
+    {
+        std::filesystem::path directoryPath = GetApplicationDirectory();
+        directoryPath /= "Screenshots";
+
+        if (!std::filesystem::exists(directoryPath))
+        {
+            std::filesystem::create_directory(directoryPath);
+        }
+
+        struct tm timeInfo;
+        auto currentTime = std::chrono::system_clock::now();
+        auto currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
+        localtime_s(&timeInfo, &currentTimeT);
+
+        char timeBuffer[20];
+        strftime(timeBuffer, sizeof(timeBuffer), "%Y%m%d%H%M%S", &timeInfo);
+
+        std::string timeStamp(timeBuffer);
+        std::filesystem::path imagePath = directoryPath / (timeStamp + "screenshot.png");
+
+        Image image = LoadImageFromTexture(screenTexture);
+
+        ExportImage(image, imagePath.string().c_str());
+        UnloadImage(image);
+    }
 }
 
 //Switching between elements
