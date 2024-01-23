@@ -32,6 +32,10 @@ private:
 	Element::Elements currentElement = Element::Elements::SAND;
 
 	Texture2D cursor;
+	Texture2D screenTexture;
+	Image screenImage;
+
 	int cursorOrigin = 7;
 	int brushSize = 5;
+	char timeBuffer[20];
 };

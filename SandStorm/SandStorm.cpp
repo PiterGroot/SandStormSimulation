@@ -5,11 +5,7 @@ Color UNOCCUPIED_CELL = Color(0,0,0,255);
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
-Image screenImage;
-Texture2D screenTexture;
-
 Color pixels[WIDTH * HEIGHT];
-//int map[WIDTH * HEIGHT]; //look if row is empty before updating
 
 SandStorm::SandStorm() //constructor
 {
@@ -141,8 +137,7 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         auto currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
         localtime_s(&timeInfo, &currentTimeT);
 
-        char timeBuffer[20];
-        strftime(timeBuffer, sizeof(timeBuffer), "%Y%m%d%H%M%S", &timeInfo);
+        strftime(timeBuffer, sizeof(timeBuffer), "%d-%H-%M-%S-", &timeInfo);
 
         std::string timeStamp(timeBuffer);
         std::filesystem::path imagePath = directoryPath / (timeStamp + "screenshot.png");
