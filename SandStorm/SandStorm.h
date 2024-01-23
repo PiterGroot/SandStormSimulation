@@ -21,6 +21,7 @@ private:
 	void HandleCellSwitching();
 	void ManipulateCell(bool state, int x, int y);
 
+	bool CompareColor(Color colorA, Color colorB);
 	bool IsOutOfBounds(int x, int y);
 	std::string GetElementString();
 

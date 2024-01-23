@@ -9,6 +9,7 @@ int main()
     Image image = LoadImage("Textures/icon.png");
     SetWindowIcon(image);
 
+    //SetTargetFPS(60);
     DisableCursor();
     SandStorm* sandStorm = new SandStorm();
     while (!WindowShouldClose())

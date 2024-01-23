@@ -1,16 +1,34 @@
 #include "SandStorm.h"
 
-int UNOCCUPIED_CELL { 0 };
+Color UNOCCUPIED_CELL = Color(0,0,0,255);
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
-RenderTexture2D target;
+Image screenImage;
+Texture2D screenTexture;
+
+Color pixels[WIDTH * HEIGHT];
+//int map[WIDTH * HEIGHT]; //look if row is empty before updating
 
 SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
-    target = LoadRenderTexture(WIDTH, HEIGHT);
+
+    screenImage = GenImageColor(WIDTH, HEIGHT, WHITE);
+    screenTexture = LoadTextureFromImage(screenImage);
+
+    for (int i = 0; i < WIDTH * HEIGHT; i++)
+    {
+        pixels[i] = UNOCCUPIED_CELL;
+    }
+
+    int centerPosition = 256 + WIDTH * 256;
+    int centerPosition1 = 256 + WIDTH * 255;
+    pixels[centerPosition] = GOLD;
+    //pixels[centerPosition1] = RED;
+
+    screenImage.data = pixels;
     elementRules = new ElementRules();
 }
 
@@ -34,11 +52,12 @@ void SandStorm::Update(float deltaTime)
             UpdateCell(x, y);
         }
     }
+    UpdateTexture(screenTexture, pixels);
 
     BeginDrawing();
     ClearBackground(BLACK);
 
-    DrawTextureRec(target.texture, Rectangle(0, 0, (float)target.texture.width, (float)-target.texture.height), Vector2(0, 0), WHITE);
+    DrawTexture(screenTexture, 0, 0, WHITE);
     
     //draw custom cursor
     Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
@@ -52,35 +71,26 @@ void SandStorm::Update(float deltaTime)
 //Update cell based on its rules
 void SandStorm::UpdateCell(int x, int y)
 {
-    //Element::Elements element = Element::SAND;
-    ////Element::Elements element = elementRules->cellColorValues[Color(index, (int)pixels[index + 1], (int)pixels[index + 2], 255)];
+    int oldIndex = x + WIDTH * y;
+    if (CompareColor(pixels[oldIndex], UNOCCUPIED_CELL))
+        return;
 
-    //if (element == Element::Elements::WALL) //skip walls
-    //    return;
+    Element::Elements element = Element::Elements::SAND;
+    auto& cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
+    for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
+    {
+        Vector2 checkVector = elementRules->ruleValues[rule];
+        int xPos = checkVector.x;
+        int yPos = checkVector.y;
 
-    //auto cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
-    //for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
-    //{
-    //    Vector2 checkVector = elementRules->ruleValues[rule];
-    //    int xPos = checkVector.x;
-    //    int yPos = checkVector.y;
+        int newIndex = (x + xPos) + WIDTH * (y + yPos);
 
-    //    if (IsOutOfBounds(x + xPos, y + yPos)) //check if next position would be out of bounds
-    //        continue;
-
-    //    int nextIndex = (x + xPos + y + yPos * WIDTH) * 4;
-    //    if (pixels[nextIndex + 3] == UNOCCUPIED_CELL) //if next space is unoccupied 
-    //    {
-    //        Color cellColor = elementRules->GetCellColor(element);
-    //        pixels[index + 3] = UNOCCUPIED_CELL;
-    //        
-    //        pixels[index] = cellColor.r;
-    //        pixels[index + 1] = cellColor.g;
-    //        pixels[index + 2] = cellColor.b;
-    //        pixels[index + 3] = 255;
-    //        break;
-    //    }
-    //}
+        if (CompareColor(pixels[newIndex], UNOCCUPIED_CELL)) {
+            pixels[oldIndex] = UNOCCUPIED_CELL;
+            pixels[newIndex] = GOLD;
+            break;
+        }
+    }
 }
 
 //Placing / destroying cells with mouse
@@ -91,25 +101,27 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
 
     if (state) //placing cells 
     {
-        BeginTextureMode(target);
-        DrawRectangle(xPos, yPos, brushSize, brushSize, WHITE);
-        EndTextureMode();
+        int index = xPos + WIDTH * yPos;
+        if(CompareColor(pixels[index], UNOCCUPIED_CELL))
+        {
+            pixels[index] = GOLD;
+        }
     }
 }
 
 //General input checks
 void SandStorm::HandleInput(int mouseX, int mouseY)
 {
-    if (IsMouseButtonDown(0)) //placin cells
+    if (IsMouseButtonDown(0)) //placing cells
         ManipulateCell(true, mouseX, mouseY);
 
     if (IsMouseButtonDown(1)) //removing cells
         ManipulateCell(false, mouseX, mouseY);
 
-    if (IsKeyPressed(KEY_LEFT_BRACKET)) //increasing brush size
+    if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
         brushSize = std::max(brushSize - 1, 1);
         
-    if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decreasing brush size
+    if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decrease brush size
         brushSize++;
 }
 
@@ -127,6 +139,16 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_FOUR))
         currentElement = Element::Elements::TEST;
+}
+
+//Simple color equals check
+bool SandStorm::CompareColor(Color colorA, Color colorB)
+{
+    bool r = colorA.r == colorB.r;
+    bool g = colorA.g == colorB.g;
+    bool b = colorA.b == colorB.b;
+
+    return r && g && b;
 }
 
 //Checks if given position is outside the window

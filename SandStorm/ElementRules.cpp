@@ -13,7 +13,7 @@ ElementRules::ElementRules()
     // Initialize rule sets
     sandRules =  { DOWN, DOWN_LEFT, DOWN_RIGHT };
     waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    testRules = { UP };
+    testRules =  { UP };
 
     // Initialize getRuleSet map
     getRuleSet = {
