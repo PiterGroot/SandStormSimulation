@@ -20,10 +20,7 @@ SandStorm::SandStorm() //constructor
     {
         pixels[i] = UNOCCUPIED_CELL;
     }
-
-    int centerPosition = (WIDTH * .5f) + WIDTH * (HEIGHT * .5f);
-    pixels[centerPosition] = GOLD;
-
+    
     screenImage.data = pixels;
     elementRules = new ElementRules();
 }
@@ -43,13 +40,23 @@ void SandStorm::Update(float deltaTime)
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
-    //Update all active cells
-    for (int x = 0; x < WIDTH; x++)
+    //Try update all active cells
+    if (shouldUpdate)
     {
-        for (int y = 0; y < HEIGHT - 1; y++)
+        for (int x = 0; x < WIDTH; x++)
         {
-            UpdateCell(x, y);
+            for (int y = 0; y < HEIGHT - 1; y++)
+            {
+                UpdateCell(x, y);
+            }
         }
+    }
+
+    skipTimer += deltaTime; //advance skip timer
+    if (skipTimer >= skipTime && skipTimerActive)
+    {
+        skipTimerActive = false;
+        shouldUpdate = false;
     }
 
     UpdateTexture(screenTexture, pixels);   
@@ -97,17 +104,23 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
     if (IsOutOfBounds(xPos, yPos)) //check for all brush positions if it is out of bounds
         return;
 
-    int index = xPos + WIDTH * yPos;
-    if (state) //placing cells 
+    for (int x = -brushSize; x < brushSize; x++)
     {
-        if (CompareColor(pixels[index], UNOCCUPIED_CELL))
+        for (int y = -brushSize; y < brushSize; y++)
         {
-            pixels[index] = GOLD;
+            int index = (x + xPos) + WIDTH * (y + yPos);
+            if (state) //placing cells 
+            {
+                if (CompareColor(pixels[index], UNOCCUPIED_CELL))
+                {
+                    pixels[index] = GOLD;
+                }
+            }
+            else //destroying cells
+            {
+                pixels[index] = UNOCCUPIED_CELL;
+            }
         }
-    }
-    else
-    {
-        pixels[index] = UNOCCUPIED_CELL;
     }
 }
 
@@ -150,6 +163,16 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
 
         ExportImage(image, imagePath.string().c_str());
         UnloadImage(image);
+    }
+
+    if (IsKeyPressed(KEY_SPACE)) //toggle updating
+        shouldUpdate = !shouldUpdate;
+
+    if (IsKeyPressed(KEY_RIGHT) && !skipTimerActive) //go couple frames forward
+    {
+        skipTimer = 0;
+        shouldUpdate = true;
+        skipTimerActive = true;
     }
 }
 

@@ -17,10 +17,10 @@ public:
 	~SandStorm();
 
 	void Update(float deltaTime);
+	void UpdateCell(int x, int y);
 
 private:
 	void HandleInput(int mouseX, int mouseY);
-	void UpdateCell(int x, int y);
 	void HandleCellSwitching();
 	void ManipulateCell(bool state, int x, int y);
 
@@ -38,4 +38,10 @@ private:
 	int cursorOrigin = 7;
 	int brushSize = 5;
 	char timeBuffer[20];
+
+	bool shouldUpdate = true;
+
+	float skipTimer;
+	float skipTime = .01f;
+	bool skipTimerActive = false;
 };
