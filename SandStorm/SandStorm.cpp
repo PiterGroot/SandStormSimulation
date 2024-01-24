@@ -1,7 +1,5 @@
 #include "SandStorm.h"
 
-Color UNOCCUPIED_CELL = BLANK;
-
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
@@ -13,10 +11,15 @@ SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
 
-    screenImage = GenImageColor(WIDTH, HEIGHT, BLANK);
+    screenImage = GenImageColor(WIDTH, HEIGHT, UNOCCUPIED_CELL);
     screenTexture = LoadTextureFromImage(screenImage);
 
-    elementRules = new ElementRules();
+    for (int i = 0; i < WIDTH * HEIGHT; i++) //set texture background to black
+        pixels[i] = UNOCCUPIED_CELL;
+
+    screenImage.data = pixels; //update image with black background
+    elementRules = new ElementRules(); //create cell rules ref
+    
     srand(time(0)); //set randoms seed
 }
 
@@ -78,6 +81,8 @@ void SandStorm::UpdateCell(int x, int y)
     if (CompareColor(simulation[oldIndex], UNOCCUPIED_CELL))
         return;
 
+    //Element::Elements element = elementRules->getElementByColor[simulation[oldIndex]];
+    
     Element::Elements element = Element::Elements::SAND;
     auto& cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
@@ -106,6 +111,10 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
         for (int y = -brushSize; y < brushSize; y++)
         {
             int index = (x + xPos) + WIDTH * (y + yPos);
+
+            if (IsOutOfBounds(xPos + x, yPos + y)) //check for all brush positions if it is out of bounds
+                continue;
+
             if (state) //placing cells 
             {
                 if (GetRandomValue(0, 100) > cellPlacingRandomization) //random chance cell will not be placed for more visual variety
@@ -118,7 +127,10 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
             }
             else //destroying cells
             {
-                pixels[index] = UNOCCUPIED_CELL;
+                if (!CompareColor(simulation[index], UNOCCUPIED_CELL))
+                {
+                    pixels[index] = UNOCCUPIED_CELL;
+                }
             }
         }
     }

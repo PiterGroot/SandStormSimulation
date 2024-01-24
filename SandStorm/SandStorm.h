@@ -8,7 +8,6 @@
 
 #include "raylib.h"
 #include "ElementRules.h"
-#include "raymath.h"
 
 class SandStorm 
 {
@@ -28,9 +27,12 @@ private:
 	bool CompareColor(Color colorA, Color colorB);
 	bool IsOutOfBounds(int x, int y);
 	std::string GetElementString();
+	Element::Elements GetElement(Color cellColor);
 
 	ElementRules* elementRules = nullptr;
 	Element::Elements currentElement = Element::Elements::SAND;
+
+	Color UNOCCUPIED_CELL = Color(0, 0, 0, 255);
 
 	Texture2D cursor;
 	Texture2D screenTexture;
