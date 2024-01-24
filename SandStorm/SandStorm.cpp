@@ -71,6 +71,8 @@ void SandStorm::Update(float deltaTime)
 
     DrawFPS(0, 0); //draw fps
     DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
+    DrawText(shouldUpdate ? "Active" : "Paused", 256 - 45, 0, 24, GREEN); //draw update state label
+
     EndDrawing();
 }
 
@@ -140,30 +142,7 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         brushSize++;
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
-    {
-        std::filesystem::path directoryPath = GetApplicationDirectory();
-        directoryPath /= "Screenshots";
-
-        if (!std::filesystem::exists(directoryPath))
-        {
-            std::filesystem::create_directory(directoryPath);
-        }
-
-        struct tm timeInfo;
-        auto currentTime = std::chrono::system_clock::now();
-        auto currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
-        localtime_s(&timeInfo, &currentTimeT);
-
-        strftime(timeBuffer, sizeof(timeBuffer), "%d-%H-%M-%S-", &timeInfo);
-
-        std::string timeStamp(timeBuffer);
-        std::filesystem::path imagePath = directoryPath / (timeStamp + "screenshot.png");
-
-        Image image = LoadImageFromTexture(screenTexture);
-
-        ExportImage(image, imagePath.string().c_str());
-        UnloadImage(image);
-    }
+        ExportScreenShot();
 
     if (IsKeyPressed(KEY_SPACE)) //toggle updating
         shouldUpdate = !shouldUpdate;
@@ -190,6 +169,33 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_FOUR))
         currentElement = Element::Elements::TEST;
+}
+
+//Helper method for creating and exporting screenshots
+void SandStorm::ExportScreenShot()
+{
+    std::filesystem::path directoryPath = GetApplicationDirectory(); //define screenshot path
+    directoryPath /= "Screenshots";
+
+    if (!std::filesystem::exists(directoryPath)) //create 'Screenshot' folder if it doesn't exist
+        std::filesystem::create_directory(directoryPath);
+
+    //gather timestamp info
+    struct tm timeInfo;
+    auto currentTime = std::chrono::system_clock::now();
+    auto currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
+    localtime_s(&timeInfo, &currentTimeT);
+
+    strftime(timeBuffer, sizeof(timeBuffer), "%d-%H-%M-%S-", &timeInfo); //format timestamp based on timeInfo and put it inside timeBuffer
+
+    std::string timeStamp(timeBuffer);
+    std::filesystem::path imagePath = directoryPath / (timeStamp + "screenshot.png"); //define file name/path
+
+    //load and export current screen texture 
+    Image image = LoadImageFromTexture(screenTexture);
+    ExportImage(image, imagePath.string().c_str());
+    
+    UnloadImage(image);
 }
 
 //Simple color equals check

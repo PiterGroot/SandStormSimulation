@@ -17,13 +17,14 @@ public:
 	~SandStorm();
 
 	void Update(float deltaTime);
-	void UpdateCell(int x, int y);
 
 private:
+	void UpdateCell(int x, int y);
+	void ManipulateCell(bool state, int x, int y);
 	void HandleInput(int mouseX, int mouseY);
 	void HandleCellSwitching();
-	void ManipulateCell(bool state, int x, int y);
 
+	void ExportScreenShot();
 	bool CompareColor(Color colorA, Color colorB);
 	bool IsOutOfBounds(int x, int y);
 	std::string GetElementString();
