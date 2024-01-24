@@ -21,6 +21,11 @@ SandStorm::SandStorm() //constructor
     elementRules = new ElementRules(); //create cell rules ref
     
     srand(time(0)); //set randoms seed
+    InitAudioDevice();
+
+    placeSFX =  LoadSound("Resources/Audio/place.wav");
+    place1SFX = LoadSound("Resources/Audio/place1.wav");
+    place2SFX = LoadSound("Resources/Audio/place2.wav");
 }
 
 SandStorm::~SandStorm() //deconstructor
@@ -144,6 +149,9 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
 
     if (IsMouseButtonDown(1)) //removing cells
         ManipulateCell(false, mouseX, mouseY);
+
+    if(IsMouseButtonPressed(0))
+        PlaySound(placeSFX);
 
     if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
     {

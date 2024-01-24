@@ -50,4 +50,8 @@ private:
 	float cellPlacingRandomization = 99;
 	int brushSizeScaler = 5;
 	int brushSize = 5;
+
+	Sound placeSFX;
+	Sound place1SFX;
+	Sound place2SFX;
 };
