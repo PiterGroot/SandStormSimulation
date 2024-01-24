@@ -87,7 +87,7 @@ void SandStorm::UpdateCell(int x, int y)
         int yPos = checkVector.y;
 
         int newIndex = (x + xPos) + WIDTH * (y + yPos);
-        if (CompareColor(pixels[newIndex], UNOCCUPIED_CELL)) {
+        if (CompareColor(simulation[newIndex], UNOCCUPIED_CELL)) {
             pixels[oldIndex] = UNOCCUPIED_CELL;
             pixels[newIndex] = GOLD;
             break;
@@ -110,7 +110,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
             {
                 if (GetRandomValue(0, 100) > cellPlacingRandomization) //random chance cell will not be placed for more visual variety
                 {
-                    if (CompareColor(pixels[index], UNOCCUPIED_CELL))
+                    if (CompareColor(simulation[index], UNOCCUPIED_CELL))
                     {
                         pixels[index] = GOLD;
                     }
