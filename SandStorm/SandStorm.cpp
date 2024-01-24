@@ -4,7 +4,9 @@ Color UNOCCUPIED_CELL = Color(0,0,0,255);
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
+int size = WIDTH * HEIGHT;
 
+std::vector<Color> simulation;
 Color pixels[WIDTH * HEIGHT];
 
 SandStorm::SandStorm() //constructor
@@ -19,7 +21,7 @@ SandStorm::SandStorm() //constructor
         pixels[i] = UNOCCUPIED_CELL;
     }
 
-    int centerPosition = 256 + WIDTH * 256;
+    int centerPosition = (WIDTH * .5f) + WIDTH * (HEIGHT * .5f);
     pixels[centerPosition] = GOLD;
 
     screenImage.data = pixels;
@@ -35,6 +37,9 @@ void SandStorm::Update(float deltaTime)
 {
     Vector2 mousePosition = GetMousePosition();
 
+    simulation.clear();
+    simulation.insert(simulation.end(), &pixels[0], &pixels[size]);
+
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
@@ -46,8 +51,8 @@ void SandStorm::Update(float deltaTime)
             UpdateCell(x, y);
         }
     }
-    UpdateTexture(screenTexture, pixels);
 
+    UpdateTexture(screenTexture, pixels);   
     BeginDrawing();
     ClearBackground(BLACK);
 
@@ -66,7 +71,7 @@ void SandStorm::Update(float deltaTime)
 void SandStorm::UpdateCell(int x, int y)
 {
     int oldIndex = x + WIDTH * y;
-    if (CompareColor(pixels[oldIndex], UNOCCUPIED_CELL))
+    if (CompareColor(simulation[oldIndex], UNOCCUPIED_CELL))
         return;
 
     Element::Elements element = Element::Elements::SAND;
@@ -78,7 +83,6 @@ void SandStorm::UpdateCell(int x, int y)
         int yPos = checkVector.y;
 
         int newIndex = (x + xPos) + WIDTH * (y + yPos);
-
         if (CompareColor(pixels[newIndex], UNOCCUPIED_CELL)) {
             pixels[oldIndex] = UNOCCUPIED_CELL;
             pixels[newIndex] = GOLD;
