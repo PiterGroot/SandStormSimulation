@@ -37,7 +37,6 @@ private:
 	Image screenImage;
 
 	int cursorOrigin = 7;
-	int brushSize = 5;
 	char timeBuffer[20];
 
 	bool shouldUpdate = true;
@@ -45,4 +44,8 @@ private:
 	float skipTimer;
 	float skipTime = .01f;
 	bool skipTimerActive = false;
+
+	float cellPlacingRandomization = 99;
+	int brushSizeScaler = 5;
+	int brushSize = 5;
 };

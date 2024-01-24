@@ -1,28 +1,23 @@
 #include "SandStorm.h"
 
-Color UNOCCUPIED_CELL = Color(0,0,0,255);
+Color UNOCCUPIED_CELL = BLANK;
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
-int size = WIDTH * HEIGHT;
 
 std::vector<Color> simulation;
 Color pixels[WIDTH * HEIGHT];
+int size = WIDTH * HEIGHT;
 
 SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
 
-    screenImage = GenImageColor(WIDTH, HEIGHT, WHITE);
+    screenImage = GenImageColor(WIDTH, HEIGHT, BLANK);
     screenTexture = LoadTextureFromImage(screenImage);
 
-    for (int i = 0; i < WIDTH * HEIGHT; i++)
-    {
-        pixels[i] = UNOCCUPIED_CELL;
-    }
-    
-    screenImage.data = pixels;
     elementRules = new ElementRules();
+    srand(time(0)); //set randoms seed
 }
 
 SandStorm::~SandStorm() //deconstructor
@@ -33,7 +28,7 @@ SandStorm::~SandStorm() //deconstructor
 void SandStorm::Update(float deltaTime)
 {
     Vector2 mousePosition = GetMousePosition();
-
+    
     simulation.clear();
     simulation.insert(simulation.end(), &pixels[0], &pixels[size]);
 
@@ -45,21 +40,14 @@ void SandStorm::Update(float deltaTime)
     {
         for (int x = 0; x < WIDTH; x++)
         {
-            for (int y = 0; y < HEIGHT - 1; y++)
+            for (int y = 0; y < HEIGHT - 2; y++)
             {
                 UpdateCell(x, y);
             }
         }
     }
-
-    skipTimer += deltaTime; //advance skip timer
-    if (skipTimer >= skipTime && skipTimerActive)
-    {
-        skipTimerActive = false;
-        shouldUpdate = false;
-    }
-
     UpdateTexture(screenTexture, pixels);   
+
     BeginDrawing();
     ClearBackground(BLACK);
 
@@ -74,6 +62,13 @@ void SandStorm::Update(float deltaTime)
     DrawText(shouldUpdate ? "Active" : "Paused", 256 - 45, 0, 24, GREEN); //draw update state label
 
     EndDrawing();
+
+    skipTimer += deltaTime; //advance skip timer
+    if (skipTimer >= skipTime && skipTimerActive)
+    {
+        skipTimerActive = false;
+        shouldUpdate = false;
+    }
 }
 
 //Update cell based on its rules
@@ -113,9 +108,12 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
             int index = (x + xPos) + WIDTH * (y + yPos);
             if (state) //placing cells 
             {
-                if (CompareColor(pixels[index], UNOCCUPIED_CELL))
+                if (GetRandomValue(0, 100) > cellPlacingRandomization) //random chance cell will not be placed for more visual variety
                 {
-                    pixels[index] = GOLD;
+                    if (CompareColor(pixels[index], UNOCCUPIED_CELL))
+                    {
+                        pixels[index] = GOLD;
+                    }
                 }
             }
             else //destroying cells
@@ -136,10 +134,13 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         ManipulateCell(false, mouseX, mouseY);
 
     if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
-        brushSize = std::max(brushSize - 1, 1);
+    {
+        brushSize -= IsKeyDown(KEY_LEFT_CONTROL) ? brushSizeScaler : 1;
+        brushSize = std::max(brushSize, 1);
+    }
 
     if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decrease brush size
-        brushSize++;
+        brushSize += IsKeyDown(KEY_LEFT_CONTROL) ? brushSizeScaler : 1;
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
         ExportScreenShot();
