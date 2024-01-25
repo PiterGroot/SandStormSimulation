@@ -27,10 +27,10 @@ public:
 	std::unordered_map<Rules, Vector2> ruleValues;
 
 private:
-	float aplhaRandomness = 200;
 	std::unordered_map<Element::Elements, Color> cellColorValues;
 
 	std::vector<Rules> sandRules;
 	std::vector<Rules> waterRules;
 	std::vector<Rules> smokeRules;
+	std::vector<Rules> lavaRules;
 };

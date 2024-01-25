@@ -4,7 +4,6 @@
 #include <string>
 #include <chrono>
 #include <ctime>
-#include <map>
 
 #include "raylib.h"
 #include "ElementRules.h"
@@ -21,13 +20,17 @@ public:
 private:
 	void UpdateCell(int x, int y);
 	void ManipulateCell(bool state, int x, int y, int overrideBrushSize = 0);
-	void HandleInput(int mouseX, int mouseY);
-	void HandleCellSwitching();
+	
+	void SetCell(int index, Element::Elements element, bool markUpdated = true);
 	void SwapCell(int fromIndex, int toIndex, Element::Elements swapA, Element::Elements swapB);
 
-	void ExportScreenShot();
+	void HandleInput(int mouseX, int mouseY);
+	void HandleCellSwitching();
+
 	bool IsOutOfBounds(int x, int y);
 	bool GetChance(float input);
+	void ExportScreenShot();
+
 	std::string GetElementString();
 
 	ElementRules* elementRules = nullptr;
@@ -53,7 +56,7 @@ private:
 	float cellPlacingRandomization = 99;
 	
 	int brushSizeScaler = 5;
-	int brushSize = 5;
+	int brushSize = 10;
 
 	Sound placeSFX;
 	Sound place1SFX;

@@ -104,11 +104,11 @@ void SandStorm::UpdateCell(int x, int y)
         return;
     }
 
-    Element::Elements element = static_cast<Element::Elements>(currentCell);
-    if (element == Element::Elements::WALL) //skip walls
+    Element::Elements currentElement = static_cast<Element::Elements>(currentCell);
+    if (currentElement == Element::Elements::WALL) //skip walls
         return;
 
-    auto& cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
+    auto& cellRuleSet = elementRules->getRuleSet[currentElement]; //get the right ruleset based on cell element type
     
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
@@ -120,22 +120,44 @@ void SandStorm::UpdateCell(int x, int y)
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
 
-        if (map[newIndex].type == 0) {
-            pixels[oldIndex] = UNOCCUPIED_CELL;
-            pixels[newIndex] = elementRules->GetCellColor(element);
-            
-            map[oldIndex].type = 0;
-            map[newIndex].type = currentCell;
-            map[newIndex].isUpdated = true;
+        //try to go to desired postion based on current rule
+        if (map[newIndex].type == 0) 
+        {
+            SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
+            SetCell(newIndex, currentElement);
             break;
         }
         
-        if (currentCell == 1 && map[newIndex].type == 2) //swap sand with water if sand falls on top of water
+        //swap sand with water if sand falls on top of water
+        if (currentCell == 1 && map[newIndex].type == 2) 
         {
             SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
             break;
         }
+
+        //create smoke when water or sand touches 
+        bool createObsidianFromSand = currentCell == 1 && map[newIndex].type == 5;
+        bool createObsidianFromWater = currentCell == 2 && map[newIndex].type == 5;
+        
+        if (createObsidianFromSand || createObsidianFromWater)
+        {
+            SetCell(oldIndex, Element::Elements::SMOKE);
+            SetCell(newIndex, Element::Elements::OBSIDIAN);
+            break;
+        }
+
+        //create obsidian when lava touches sand
+        if (currentCell == 5 && map[newIndex].type == 1) 
+            SetCell(newIndex, Element::Elements::OBSIDIAN);
     }
+}
+
+//Helper method for setting single cells
+void SandStorm::SetCell(int index, Element::Elements element, bool markUpdated)
+{
+    pixels[index] = elementRules->GetCellColor(element);
+    map[index].type = element;
+    map[index].isUpdated = markUpdated;
 }
 
 //Helper method for swapping two cells with each other
@@ -166,22 +188,18 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, int overrideBrush
             
             if (state) //placing cells 
             {
-                if (GetChance(currentElement == Element::Elements::WALL ? cellPlacingNoRandomization : cellPlacingRandomization)) 
+                //placing fill chance based on current element and brush size
+                float fillChance = currentElement == Element::Elements::WALL ? cellPlacingNoRandomization : cellPlacingRandomization;
+                if (GetChance(fillChance))
                 {
                     if (map[index].type == 0)
-                    {
-                        pixels[index] = elementRules->GetCellColor(currentElement);
-                        map[index].type = currentElement;
-                    }
+                        SetCell(index, currentElement, false);
                 }
             }
             else //destroying cells
             {
                 if (map[index].type > 0)
-                {
-                    pixels[index] = UNOCCUPIED_CELL;
-                    map[index].type = 0;
-                }
+                    SetCell(index, Element::UNOCCUPIED, false);
             }
         }
     }
@@ -241,6 +259,9 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_FOUR))
         currentElement = Element::Elements::SMOKE;
+
+    if (IsKeyPressed(KEY_FIVE))
+        currentElement = Element::Elements::LAVA;
 }
 
 
@@ -295,6 +316,7 @@ std::string SandStorm::GetElementString()
         case 2:  return "Water " +     std::to_string(brushSize);
         case 3:  return "Wall " +      std::to_string(brushSize);
         case 4:  return "Smoke " +     std::to_string(brushSize);
+        case 5:  return "Lava " +      std::to_string(brushSize);
         default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }
