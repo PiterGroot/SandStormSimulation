@@ -17,13 +17,15 @@ ElementRules::ElementRules()
     waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
     smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
     lavaRules =  { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
+    woodRules =  { STAY };
 
     // Initialize getRuleSet map
     getRuleSet = {
         { Element::Elements::SAND,   sandRules  },
         { Element::Elements::WATER,  waterRules },
         { Element::Elements::SMOKE,  smokeRules },
-        { Element::Elements::LAVA,   lavaRules  }
+        { Element::Elements::LAVA,   lavaRules  },
+        { Element::Elements::WOOD,   woodRules  }
     };
 
     // Initialize cell base color values
@@ -33,7 +35,9 @@ ElementRules::ElementRules()
         { Element::Elements::WALL,     Color(255, 255, 255, 255) },
         { Element::Elements::SMOKE,    Color(150, 150, 150, 255) },
         { Element::Elements::LAVA,     Color(255, 77, 28, 255)   },
-        { Element::Elements::OBSIDIAN, Color(255, 255, 255, 0)    }
+        { Element::Elements::OBSIDIAN, Color(255, 255, 255, 0)   },
+        { Element::Elements::WOOD,     Color(130, 65, 0, 255)    },
+        { Element::Elements::FIRE,     Color(255, 48, 33, 255)   },
     };
     
     // Initialize ruleValues map
@@ -46,6 +50,7 @@ ElementRules::ElementRules()
         { UP_LEFT,    Vector2(-1, -1)},
         { DOWN_RIGHT, Vector2(1, 1)  },
         { DOWN_LEFT,  Vector2(-1, 1) },
+        { STAY,       Vector2(0, 0) }
     };
 }
 

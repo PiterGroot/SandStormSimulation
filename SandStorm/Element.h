@@ -10,7 +10,9 @@ public:
 		WALL = 3,
 		SMOKE = 4,
 		LAVA = 5,
-		OBSIDIAN = 6
+		OBSIDIAN = 6,
+		WOOD = 7,
+		FIRE = 8
 	};
 };
 

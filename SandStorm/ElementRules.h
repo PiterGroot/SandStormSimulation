@@ -21,6 +21,7 @@ public:
 		UP_LEFT,
 		DOWN_RIGHT,
 		DOWN_LEFT,
+		STAY
 	};
 
 	std::unordered_map<Element::Elements, std::vector<Rules>> getRuleSet;
@@ -33,4 +34,5 @@ private:
 	std::vector<Rules> waterRules;
 	std::vector<Rules> smokeRules;
 	std::vector<Rules> lavaRules;
+	std::vector<Rules> woodRules;
 };

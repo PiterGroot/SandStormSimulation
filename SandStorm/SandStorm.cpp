@@ -14,8 +14,6 @@ typedef struct CellInfo {
 Color pixels[WIDTH * HEIGHT];
 CellInfo map[WIDTH * HEIGHT];
 
-Color emptyGrid[WIDTH * HEIGHT];
-
 SandStorm::SandStorm() //constructor
 {
     cursor = LoadTexture("Textures/cursor.png");
@@ -26,7 +24,6 @@ SandStorm::SandStorm() //constructor
     for (int i = 0; i < WIDTH * HEIGHT; i++) //set texture background to black
     {
         pixels[i] = UNOCCUPIED_CELL;
-        emptyGrid[i] = UNOCCUPIED_CELL;
     }
 
     screenImage.data = pixels; //update image with black background
@@ -116,10 +113,10 @@ void SandStorm::UpdateCell(int x, int y)
         int xPos = checkVector.x;
         int yPos = checkVector.y;
 
-        int newIndex = (x + xPos) + WIDTH * (y + yPos);
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
 
+        int newIndex = (x + xPos) + WIDTH * (y + yPos);
         //try to go to desired postion based on current rule
         if (map[newIndex].type == 0) 
         {
@@ -146,9 +143,18 @@ void SandStorm::UpdateCell(int x, int y)
             break;
         }
 
-        //create obsidian when lava touches sand
-        if (currentCell == 5 && map[newIndex].type == 1) 
+        if (currentCell == 5 && map[newIndex].type == 1) //create obsidian when lava touches sand
             SetCell(newIndex, Element::Elements::OBSIDIAN);
+
+        if (currentCell == 5 && map[newIndex].type == 7) //create fire when lava touches wood
+            SetCell(newIndex, Element::Elements::FIRE);
+
+        //TODDO: Working on fire behaviour needs lots of attention
+        if (currentCell == 7) {
+            int upIndex = (x) + WIDTH * (y - 1);
+            if (map[upIndex].type == 8)
+                SetCell(oldIndex, Element::Elements::FIRE);
+        }
     }
 }
 
@@ -189,7 +195,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, int overrideBrush
             if (state) //placing cells 
             {
                 //placing fill chance based on current element and brush size
-                float fillChance = currentElement == Element::Elements::WALL ? cellPlacingNoRandomization : cellPlacingRandomization;
+                float fillChance = (currentElement == Element::Elements::WALL || currentElement == Element::Elements::WOOD) ? cellPlacingNoRandomization : cellPlacingRandomization;
                 if (GetChance(fillChance))
                 {
                     if (map[index].type == 0)
@@ -230,7 +236,15 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         ExportScreenShot();
 
     if (IsKeyPressed(KEY_TAB))
+    {
         ManipulateCell(false, screenCenter.x, screenCenter.y, 256);
+        
+        for (int i = 0; i < WIDTH * HEIGHT; i++) //set texture background to black
+        {
+            pixels[i] = UNOCCUPIED_CELL;
+        }
+        screenImage.data = pixels; //update image with black background
+    }
 
     if (IsKeyPressed(KEY_SPACE)) //toggle updating
     {
@@ -262,8 +276,10 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_FIVE))
         currentElement = Element::Elements::LAVA;
+    
+    if (IsKeyPressed(KEY_SIX))
+        currentElement = Element::Elements::WOOD;
 }
-
 
 //Helper method for creating and exporting screenshots
 void SandStorm::ExportScreenShot()
@@ -317,6 +333,7 @@ std::string SandStorm::GetElementString()
         case 3:  return "Wall " +      std::to_string(brushSize);
         case 4:  return "Smoke " +     std::to_string(brushSize);
         case 5:  return "Lava " +      std::to_string(brushSize);
+        case 7:  return "Wood " +      std::to_string(brushSize);
         default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }
