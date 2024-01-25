@@ -45,9 +45,10 @@ SandStorm::~SandStorm() //deconstructor
     delete elementRules;
 }
 
+//Main update loop
 void SandStorm::Update(float deltaTime)
 {
-    Vector2 mousePosition = GetMousePosition();
+    this->mousePosition = GetMousePosition();
     
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
@@ -64,7 +65,11 @@ void SandStorm::Update(float deltaTime)
         }
     }
     UpdateTexture(screenTexture, pixels); //NOTE: does texture need to be updated every frame?
+}
 
+//Main render loop
+void SandStorm::Render()
+{
     BeginDrawing();
     ClearBackground(BLACK);
 
@@ -90,10 +95,10 @@ void SandStorm::UpdateCell(int x, int y)
     int oldIndex = x + WIDTH * y;
     int currentCell = map[oldIndex].type;
     
-    if (currentCell == 0) 
+    if (currentCell == 0) //skip air (empty) cells
         return;
 
-    if (map[oldIndex].isUpdated) 
+    if (map[oldIndex].isUpdated) //skip cell if it has already beed updated this frame
     {
         map[oldIndex].isUpdated = false;
         return;

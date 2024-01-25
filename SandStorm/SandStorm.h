@@ -16,6 +16,7 @@ public:
 	~SandStorm();
 
 	void Update(float deltaTime);
+	void Render();
 
 private:
 	void UpdateCell(int x, int y);
@@ -38,6 +39,7 @@ private:
 	Texture2D screenTexture;
 	Image screenImage;
 
+	Vector2 mousePosition;
 	int cursorOrigin = 7;
 	char timeBuffer[20];
 
