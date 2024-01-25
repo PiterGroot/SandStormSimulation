@@ -2,10 +2,17 @@
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
-
-std::vector<Color> simulation;
-Color pixels[WIDTH * HEIGHT];
 int size = WIDTH * HEIGHT;
+
+typedef struct CellInfo {
+    unsigned char type = 0;
+    bool isUpdated = false;
+};
+
+Color pixels[WIDTH * HEIGHT];
+CellInfo map[WIDTH * HEIGHT];
+
+Color emptyGrid[WIDTH * HEIGHT];
 
 SandStorm::SandStorm() //constructor
 {
@@ -15,7 +22,10 @@ SandStorm::SandStorm() //constructor
     screenTexture = LoadTextureFromImage(screenImage);
 
     for (int i = 0; i < WIDTH * HEIGHT; i++) //set texture background to black
+    {
         pixels[i] = UNOCCUPIED_CELL;
+        emptyGrid[i] = UNOCCUPIED_CELL;
+    }
 
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
@@ -37,9 +47,6 @@ void SandStorm::Update(float deltaTime)
 {
     Vector2 mousePosition = GetMousePosition();
     
-    simulation.clear();
-    simulation.insert(simulation.end(), &pixels[0], &pixels[size]);
-
     HandleCellSwitching();
     HandleInput((int)mousePosition.x, (int)mousePosition.y);
 
@@ -54,7 +61,7 @@ void SandStorm::Update(float deltaTime)
             }
         }
     }
-    UpdateTexture(screenTexture, pixels);   
+    UpdateTexture(screenTexture, pixels); //NOTE: does texture need to be updated every frame?
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -79,13 +86,23 @@ void SandStorm::Update(float deltaTime)
 void SandStorm::UpdateCell(int x, int y)
 {
     int oldIndex = x + WIDTH * y;
-    if (CompareColor(simulation[oldIndex], UNOCCUPIED_CELL))
+    int currentCell = map[oldIndex].type;
+    
+    if (currentCell == 0) 
         return;
 
-    //Element::Elements element = elementRules->getElementByColor[simulation[oldIndex]];
-    
-    Element::Elements element = Element::Elements::SAND;
+    if (map[oldIndex].isUpdated) 
+    {
+        map[oldIndex].isUpdated = false;
+        return;
+    }
+
+    Element::Elements element = static_cast<Element::Elements>(currentCell);
+    if (element == Element::Elements::WALL) //skip walls
+        return;
+
     auto& cellRuleSet = elementRules->getRuleSet[element]; //get the right ruleset based on cell element type
+    
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
         Vector2 checkVector = elementRules->ruleValues[rule];
@@ -96,9 +113,13 @@ void SandStorm::UpdateCell(int x, int y)
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
 
-        if (CompareColor(simulation[newIndex], UNOCCUPIED_CELL)) {
+        if (map[newIndex].type == 0) {
             pixels[oldIndex] = UNOCCUPIED_CELL;
-            pixels[newIndex] = GOLD;
+            pixels[newIndex] = elementRules->GetCellColor(element);
+            
+            map[oldIndex].type = 0;
+            map[newIndex].type = currentCell;
+            map[newIndex].isUpdated = true;
             break;
         }
     }
@@ -118,19 +139,21 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
             
             if (state) //placing cells 
             {
-                if (GetRandomValue(0, 100) > cellPlacingRandomization) //random chance cell will not be placed for more visual variety
+                if (GetChance(currentElement == Element::Elements::WALL ? cellPlacingNoRandomization : cellPlacingRandomization)) 
                 {
-                    if (CompareColor(simulation[index], UNOCCUPIED_CELL))
+                    if (map[index].type == 0)
                     {
-                        pixels[index] = GOLD;
+                        pixels[index] = elementRules->GetCellColor(currentElement);
+                        map[index].type = currentElement;
                     }
                 }
             }
             else //destroying cells
             {
-                if (!CompareColor(simulation[index], UNOCCUPIED_CELL))
+                if (map[index].type > 0)
                 {
                     pixels[index] = UNOCCUPIED_CELL;
+                    map[index].type = 0;
                 }
             }
         }
@@ -187,7 +210,7 @@ void SandStorm::HandleCellSwitching()
         currentElement = Element::Elements::WALL;
 
     if (IsKeyPressed(KEY_FOUR))
-        currentElement = Element::Elements::TEST;
+        currentElement = Element::Elements::SMOKE;
 }
 
 //Helper method for creating and exporting screenshots
@@ -217,16 +240,6 @@ void SandStorm::ExportScreenShot()
     UnloadImage(image);
 }
 
-//Simple color equals check
-bool SandStorm::CompareColor(Color colorA, Color colorB)
-{
-    bool r = colorA.r == colorB.r;
-    bool g = colorA.g == colorB.g;
-    bool b = colorA.b == colorB.b;
-
-    return r && g && b;
-}
-
 //Checks if given position is outside the window
 bool SandStorm::IsOutOfBounds(int posX, int posY)
 {
@@ -236,15 +249,21 @@ bool SandStorm::IsOutOfBounds(int posX, int posY)
     return outOfBoundsA || outOfBoundsB;
 }
 
+//Calculates and returns a chance based on input value
+bool SandStorm::GetChance(float input)
+{
+    return GetRandomValue(0, 100) > input;
+}
+
 //Convert current element enum value to string for UI label
 std::string SandStorm::GetElementString()
 {
-    switch (static_cast<int>(currentElement))
+    switch (currentElement)
     {
         case 1:  return "Sand " +      std::to_string(brushSize);
         case 2:  return "Water " +     std::to_string(brushSize);
         case 3:  return "Wall " +      std::to_string(brushSize);
-        case 4:  return "Test " +      std::to_string(brushSize);
+        case 4:  return "Smoke " +     std::to_string(brushSize);
         default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }

@@ -13,14 +13,13 @@ ElementRules::ElementRules()
     // Initialize rule sets
     sandRules =  { DOWN, DOWN_LEFT, DOWN_RIGHT };
     waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    testRules =  { UP };
+    smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT };
 
     // Initialize getRuleSet map
     getRuleSet = {
-        { Element::Elements::SAND,  sandRules },
-        { Element::Elements::WATER, waterRules },
-        { Element::Elements::WALL,  wallRules },
-        { Element::Elements::TEST,  testRules },
+        { Element::Elements::SAND,   sandRules  },
+        { Element::Elements::WATER,  waterRules },
+        { Element::Elements::SMOKE,  smokeRules },
     };
 
     //// Initialize ruleValues map
@@ -34,20 +33,20 @@ ElementRules::ElementRules()
         { DOWN_RIGHT, Vector2(1, 1)  },
         { DOWN_LEFT,  Vector2(-1, 1) },
     };
+
+    cellColorValues = {
+        { Element::Elements::SAND,  Color(255, 255, 0, 255) },
+        { Element::Elements::WATER, Color(0, 0, 255, 255) },
+        { Element::Elements::WALL,  Color(255, 255, 255, 255) },
+        { Element::Elements::SMOKE, Color(150, 150, 150, 255) },
+    };
 }
 
+//Returns a randomized color value based on input element
 Color ElementRules::GetCellColor(Element::Elements element)
 {
-    //for (const auto& labelPair : cellColorValues)
-    //{
-    //    if (element == labelPair.second) 
-    //    {
-    //        //int randAlpha = GetRandomValue(200, 255); // randomize alpha
-    //        return Color(labelPair.first.r, labelPair.first.g, labelPair.first.b, 255);
-    //    }
-    //}
-    
-    //return PURPLE; //element not found color
+    Color baseColor = cellColorValues[element];
 
-    return RAYWHITE;
+    int randAlpha = GetRandomValue(aplhaRandomness, 255); // randomize alpha
+    return Color(baseColor.r, baseColor.g, baseColor.b, randAlpha);
 }

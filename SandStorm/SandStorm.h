@@ -24,10 +24,9 @@ private:
 	void HandleCellSwitching();
 
 	void ExportScreenShot();
-	bool CompareColor(Color colorA, Color colorB);
 	bool IsOutOfBounds(int x, int y);
+	bool GetChance(float input);
 	std::string GetElementString();
-	Element::Elements GetElement(Color cellColor);
 
 	ElementRules* elementRules = nullptr;
 	Element::Elements currentElement = Element::Elements::SAND;
@@ -47,7 +46,9 @@ private:
 	float skipTime = .01f;
 	bool skipTimerActive = false;
 
+	float cellPlacingNoRandomization = 0;
 	float cellPlacingRandomization = 99;
+	
 	int brushSizeScaler = 5;
 	int brushSize = 5;
 
