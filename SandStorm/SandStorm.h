@@ -19,9 +19,10 @@ public:
 
 private:
 	void UpdateCell(int x, int y);
-	void ManipulateCell(bool state, int x, int y);
+	void ManipulateCell(bool state, int x, int y, int overrideBrushSize = 0);
 	void HandleInput(int mouseX, int mouseY);
 	void HandleCellSwitching();
+	void SwapCell(int fromIndex, int toIndex, Element::Elements swapA, Element::Elements swapB);
 
 	void ExportScreenShot();
 	bool IsOutOfBounds(int x, int y);

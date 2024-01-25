@@ -2,7 +2,9 @@
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
+
 int size = WIDTH * HEIGHT;
+Vector2 screenCenter = Vector2(WIDTH / 2, HEIGHT / 2);
 
 typedef struct CellInfo {
     unsigned char type = 0;
@@ -122,12 +124,32 @@ void SandStorm::UpdateCell(int x, int y)
             map[newIndex].isUpdated = true;
             break;
         }
+        
+        if (currentCell == 1 && map[newIndex].type == 2) //swap sand with water if sand falls on top of water
+        {
+            SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
+            break;
+        }
     }
 }
 
-//Placing / destroying cells with mouse
-void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
+//Helper method for swapping two cells with each other
+void SandStorm::SwapCell(int fromIndex, int toIndex, Element::Elements swapA, Element::Elements swapB)
 {
+    pixels[fromIndex] = elementRules->GetCellColor(swapB);
+    pixels[toIndex] = elementRules->GetCellColor(swapA);
+    
+    map[fromIndex].type = swapB;
+    map[toIndex].type = swapA;
+
+    map[fromIndex].isUpdated = true;
+    map[toIndex].isUpdated = true;
+}
+
+//Placing / destroying cells with mouse
+void SandStorm::ManipulateCell(bool state, int xPos, int yPos, int overrideBrushSize)
+{
+    int brushSize = overrideBrushSize == 0 ? this->brushSize : overrideBrushSize;
     for (int x = -brushSize; x < brushSize; x++)
     {
         for (int y = -brushSize; y < brushSize; y++)
@@ -184,6 +206,9 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
         ExportScreenShot();
 
+    if (IsKeyPressed(KEY_TAB))
+        ManipulateCell(false, screenCenter.x, screenCenter.y, 256);
+
     if (IsKeyPressed(KEY_SPACE)) //toggle updating
     {
         shouldUpdate = !shouldUpdate;
@@ -212,6 +237,7 @@ void SandStorm::HandleCellSwitching()
     if (IsKeyPressed(KEY_FOUR))
         currentElement = Element::Elements::SMOKE;
 }
+
 
 //Helper method for creating and exporting screenshots
 void SandStorm::ExportScreenShot()
