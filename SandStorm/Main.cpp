@@ -7,10 +7,13 @@ int main()
 {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "SandStorm Engine"); //create raylib window
     Image image = LoadImage("Textures/icon.png");
+   
     SetWindowIcon(image);
+    UnloadImage(image);
 
     SetTargetFPS(240);
     DisableCursor();
+
     SandStorm* sandStorm = new SandStorm();
     while (!WindowShouldClose())
     {

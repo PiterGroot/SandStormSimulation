@@ -71,12 +71,8 @@ void SandStorm::Update(float deltaTime)
 
     EndDrawing();
 
-    skipTimer += deltaTime; //advance skip timer
-    if (skipTimer >= skipTime && skipTimerActive)
-    {
-        skipTimerActive = false;
+    if (skipTimerActive)
         shouldUpdate = false;
-    }
 }
 
 //Update cell based on its rules
@@ -97,6 +93,9 @@ void SandStorm::UpdateCell(int x, int y)
         int yPos = checkVector.y;
 
         int newIndex = (x + xPos) + WIDTH * (y + yPos);
+        if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
+            continue;
+
         if (CompareColor(simulation[newIndex], UNOCCUPIED_CELL)) {
             pixels[oldIndex] = UNOCCUPIED_CELL;
             pixels[newIndex] = GOLD;
@@ -108,9 +107,6 @@ void SandStorm::UpdateCell(int x, int y)
 //Placing / destroying cells with mouse
 void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
 {
-    if (IsOutOfBounds(xPos, yPos)) //check for all brush positions if it is out of bounds
-        return;
-
     for (int x = -brushSize; x < brushSize; x++)
     {
         for (int y = -brushSize; y < brushSize; y++)
@@ -119,7 +115,7 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos)
 
             if (IsOutOfBounds(xPos + x, yPos + y)) //check for all brush positions if it is out of bounds
                 continue;
-
+            
             if (state) //placing cells 
             {
                 if (GetRandomValue(0, 100) > cellPlacingRandomization) //random chance cell will not be placed for more visual variety
@@ -166,11 +162,13 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
         ExportScreenShot();
 
     if (IsKeyPressed(KEY_SPACE)) //toggle updating
-        shouldUpdate = !shouldUpdate;
-
-    if (IsKeyPressed(KEY_RIGHT) && !skipTimerActive) //go couple frames forward
     {
-        skipTimer = 0;
+        shouldUpdate = !shouldUpdate;
+        skipTimerActive = !shouldUpdate;
+    }
+
+    if (IsKeyPressed(KEY_RIGHT)) //go couple frames forward
+    {
         shouldUpdate = true;
         skipTimerActive = true;
     }
@@ -232,7 +230,7 @@ bool SandStorm::CompareColor(Color colorA, Color colorB)
 //Checks if given position is outside the window
 bool SandStorm::IsOutOfBounds(int posX, int posY)
 {
-    bool outOfBoundsA = posX > WIDTH || posY > HEIGHT;
+    bool outOfBoundsA = posX >= WIDTH || posY > HEIGHT;
     bool outOfBoundsB = posX < 0 || posY < 0;
 
     return outOfBoundsA || outOfBoundsB;
