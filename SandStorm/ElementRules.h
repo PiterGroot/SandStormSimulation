@@ -1,10 +1,9 @@
 #pragma once
 
 #include "raylib.h"
-#include "raymath.h"
 #include "Element.h"
+#include <unordered_map>
 #include <vector>
-#include <map>
 
 class ElementRules
 {
@@ -22,16 +21,18 @@ public:
 		UP_LEFT,
 		DOWN_RIGHT,
 		DOWN_LEFT,
+		STAY
 	};
 
-	std::map<Element::Elements, std::vector<Rules>> getRuleSet;
-	std::map<Rules, Vector2> ruleValues;
+	std::unordered_map<Element::Elements, std::vector<Rules>> getRuleSet;
+	std::unordered_map<Rules, Vector2> ruleValues;
 
 private:
-	int randomColorVariation = 50;
-	std::map<Element::Elements, Color> cellColorValues;
+	std::unordered_map<Element::Elements, Color> cellColorValues;
 
 	std::vector<Rules> sandRules;
 	std::vector<Rules> waterRules;
-	std::vector<Rules> wallRules;
+	std::vector<Rules> smokeRules;
+	std::vector<Rules> lavaRules;
+	std::vector<Rules> woodRules;
 };
