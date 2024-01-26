@@ -17,17 +17,20 @@ ElementRules::ElementRules()
     waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
     smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
     lavaRules =  { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
+    fireRules =  { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
+    
     woodRules =  { STAY };
-    fireRules =  { STAY };
+    stationaryFireRules =  { STAY };
 
     // Initialize getRuleSet map
     getRuleSet = {
-        { Element::Elements::SAND,   sandRules  },
-        { Element::Elements::WATER,  waterRules },
-        { Element::Elements::SMOKE,  smokeRules },
-        { Element::Elements::LAVA,   lavaRules  },
-        { Element::Elements::WOOD,   woodRules  },
-        { Element::Elements::FIRE,   fireRules  }
+        { Element::Elements::SAND,                        sandRules  },
+        { Element::Elements::WATER,                       waterRules },
+        { Element::Elements::SMOKE,                       smokeRules },
+        { Element::Elements::LAVA,                        lavaRules  },
+        { Element::Elements::WOOD,                        woodRules  },
+        { Element::Elements::FIRE,                        fireRules  },
+        { Element::Elements::STATIONARY_FIRE,   stationaryFireRules  }
     };
 
     // Initialize cell base color values
@@ -62,7 +65,8 @@ Color ElementRules::GetCellColor(Element::Elements element)
     if (element == Element::Elements::OBSIDIAN)
         return BLACK;
     
-    if (element == Element::Elements::FIRE) //special colors for fire
+    bool isFireElement = element == Element::Elements::STATIONARY_FIRE || element == Element::Elements::FIRE;
+    if (isFireElement) //special colors for fire
     {
         int randColor = GetRandomValue(1, 5);
         switch (randColor)

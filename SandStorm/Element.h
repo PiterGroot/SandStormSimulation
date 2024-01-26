@@ -12,7 +12,8 @@ public:
 		LAVA = 5,
 		OBSIDIAN = 6,
 		WOOD = 7,
-		FIRE = 8
+		STATIONARY_FIRE = 8,
+		FIRE = 9
 	};
 };
 
