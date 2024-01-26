@@ -33,11 +33,26 @@ private:
 
 	std::string GetElementString();
 
+	typedef struct AutoCellManipulator {
+
+		Vector3 position;
+		bool mode;
+
+		AutoCellManipulator() {};
+		AutoCellManipulator(Vector2 position, int brushSize, bool mode)
+		{
+			this->position = Vector3(position.x, position.y, brushSize);
+			this->mode = mode;
+		}
+	};
+
+	std::vector<AutoCellManipulator> autoManipulators;
+
 	ElementRules* elementRules = nullptr;
 	Element::Elements currentElement = Element::Elements::SAND;
 
 	Color UNOCCUPIED_CELL = Color(0, 0, 0, 255);
-
+	
 	Texture2D cursor;
 	Texture2D screenTexture;
 	Image screenImage;

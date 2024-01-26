@@ -80,6 +80,17 @@ void SandStorm::Render()
     DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
     DrawText(shouldUpdate ? "Active" : "Paused", 256 - 45, 0, 24, GREEN); //draw update state label
 
+    //Update auto cell manipulators at end of frame
+    for (const auto& manipulator : SandStorm::autoManipulators)
+    {
+        float scale = manipulator.position.z * 2;
+        float xPos = manipulator.position.x;
+        float yPos = manipulator.position.y;
+
+        DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
+        ManipulateCell(manipulator.mode, xPos, yPos, manipulator.position.z);
+    }
+
     EndDrawing();
 
     if (skipTimerActive)
@@ -235,15 +246,23 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
         ExportScreenShot();
 
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(1)) //create auto destroyer
+        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, false));
+
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(0)) //create auto placer
+        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, true));
+
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Z)) //undo last auto cell manipulator
+    {
+        if (autoManipulators.size() == 0)
+            return;
+
+        autoManipulators.pop_back();
+    }
+
     if (IsKeyPressed(KEY_TAB))
     {
         ManipulateCell(false, screenCenter.x, screenCenter.y, 256);
-        
-        for (int i = 0; i < WIDTH * HEIGHT; i++) //set texture background to black
-        {
-            pixels[i] = UNOCCUPIED_CELL;
-        }
-        screenImage.data = pixels; //update image with black background
     }
 
     if (IsKeyPressed(KEY_SPACE)) //toggle updating

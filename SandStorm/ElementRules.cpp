@@ -30,14 +30,13 @@ ElementRules::ElementRules()
 
     // Initialize cell base color values
     cellColorValues = {
-        { Element::Elements::SAND,     Color(255, 255, 0, 255)   },
-        { Element::Elements::WATER,    Color(0, 0, 255, 255)     },
-        { Element::Elements::WALL,     Color(255, 255, 255, 255) },
-        { Element::Elements::SMOKE,    Color(150, 150, 150, 255) },
-        { Element::Elements::LAVA,     Color(255, 77, 28, 255)   },
-        { Element::Elements::OBSIDIAN, Color(255, 255, 255, 0)   },
-        { Element::Elements::WOOD,     Color(130, 65, 0, 255)    },
-        { Element::Elements::FIRE,     Color(255, 48, 33, 255)   },
+        { Element::Elements::SAND,       Color(255, 255, 0, 255)   },
+        { Element::Elements::WATER,      Color(0, 0, 255, 255)     },
+        { Element::Elements::WALL,       Color(255, 255, 255, 255) },
+        { Element::Elements::SMOKE,      Color(150, 150, 150, 255) },
+        { Element::Elements::LAVA,       Color(255, 77, 28, 255)   },
+        { Element::Elements::WOOD,       Color(130, 65, 0, 255)    },
+        { Element::Elements::FIRE,       Color(255, 48, 33, 255)   },
     };
     
     // Initialize ruleValues map
@@ -57,8 +56,13 @@ ElementRules::ElementRules()
 //Returns a randomized color value based on input element
 Color ElementRules::GetCellColor(Element::Elements element)
 {
+    if (element == Element::Elements::UNOCCUPIED)
+        return BLACK;
+    if (element == Element::Elements::OBSIDIAN)
+        return BLACK;
+    
     Color baseColor = cellColorValues[element];
-
     int randAlpha = GetRandomValue(aplhaRandomness, 255); // randomize alpha
-    return Color(baseColor.r, baseColor.g, baseColor.b, baseColor.a != 0 ? randAlpha : baseColor.a);
+    
+    return Color(baseColor.r, baseColor.g, baseColor.b, randAlpha);
 }
