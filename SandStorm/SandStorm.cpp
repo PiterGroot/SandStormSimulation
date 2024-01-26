@@ -157,10 +157,34 @@ void SandStorm::UpdateCell(int x, int y)
             SetCell(newIndex, Element::Elements::FIRE);
 
         //TODDO: Working on fire behaviour needs lots of attention
-        if (currentCell == 7) {
+        if (currentCell == 7) 
+        {
             int upIndex = (x)+WIDTH * (y - 1);
-            if (map[upIndex].type == 8)
-                SetCell(oldIndex, Element::Elements::FIRE);
+            int downIndex = (x)+WIDTH * (y + 1);
+            int leftIndex = (x - 1)+WIDTH * (y);
+            int rightIndex = (x + 1)+WIDTH * (y);
+
+            if (map[upIndex].type == 8 || map[downIndex].type == 8 || map[leftIndex].type == 8 || map[rightIndex].type == 8) 
+            {
+                map[oldIndex].updateTick++;
+
+                if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
+                {
+                    map[oldIndex].updateTick = 0;
+                    SetCell(oldIndex, Element::Elements::FIRE, true);
+                }
+            }
+        }
+
+        if (currentCell == 8) {
+            map[oldIndex].updateTick++;
+            if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
+            {
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
+                SetCell(oldIndex, GetChance(90) ? Element::Elements::SMOKE : Element::Elements::UNOCCUPIED, true);
+            }
+                
         }
         #pragma endregion
     }
@@ -172,6 +196,13 @@ void SandStorm::SetCell(int index, Element::Elements element, bool markUpdated)
     pixels[index] = elementRules->GetCellColor(element);
     map[index].type = element;
     map[index].isUpdated = markUpdated;
+
+    if (element == Element::Elements::FIRE)
+        map[index].lifeTime = GetRandomValue(75, 275);
+
+    if (element == Element::Elements::WOOD)
+        map[index].lifeTime = GetRandomValue(10, 25);
+    
 }
 
 //Helper method for swapping two cells with each other

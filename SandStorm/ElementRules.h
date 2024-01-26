@@ -35,4 +35,5 @@ private:
 	std::vector<Rules> smokeRules;
 	std::vector<Rules> lavaRules;
 	std::vector<Rules> woodRules;
+	std::vector<Rules> fireRules;
 };

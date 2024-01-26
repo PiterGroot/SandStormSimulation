@@ -19,6 +19,8 @@ public:
 
 	typedef struct CellInfo {
 		unsigned char type = 0;
+		unsigned char updateTick = 0;
+		unsigned char lifeTime = 0;
 		bool isUpdated = false;
 	};
 

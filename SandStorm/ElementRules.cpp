@@ -18,6 +18,7 @@ ElementRules::ElementRules()
     smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
     lavaRules =  { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
     woodRules =  { STAY };
+    fireRules =  { STAY };
 
     // Initialize getRuleSet map
     getRuleSet = {
@@ -25,7 +26,8 @@ ElementRules::ElementRules()
         { Element::Elements::WATER,  waterRules },
         { Element::Elements::SMOKE,  smokeRules },
         { Element::Elements::LAVA,   lavaRules  },
-        { Element::Elements::WOOD,   woodRules  }
+        { Element::Elements::WOOD,   woodRules  },
+        { Element::Elements::FIRE,   fireRules  }
     };
 
     // Initialize cell base color values
