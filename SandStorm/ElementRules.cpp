@@ -38,7 +38,6 @@ ElementRules::ElementRules()
         { Element::Elements::SMOKE,      Color(150, 150, 150, 255) },
         { Element::Elements::LAVA,       Color(255, 77, 28, 255)   },
         { Element::Elements::WOOD,       Color(130, 65, 0, 255)    },
-        { Element::Elements::FIRE,       Color(255, 48, 33, 255)   },
     };
     
     // Initialize ruleValues map
@@ -62,6 +61,19 @@ Color ElementRules::GetCellColor(Element::Elements element)
         return BLACK;
     if (element == Element::Elements::OBSIDIAN)
         return BLACK;
+    
+    if (element == Element::Elements::FIRE) //special colors for fire
+    {
+        int randColor = GetRandomValue(1, 5);
+        switch (randColor)
+        {
+            case 1: return Color(156, 43, 17, 255);
+            case 2: return Color(255, 106, 0, 255);
+            case 3: return Color(127, 0, 0, 255);
+            case 4: return Color(255, 151, 0, 255);
+            case 5: return Color(127, 51, 0, 255);
+        }
+    }
     
     Color baseColor = cellColorValues[element];
     int randAlpha = GetRandomValue(aplhaRandomness, 255); // randomize alpha

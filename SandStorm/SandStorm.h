@@ -8,6 +8,8 @@
 #include "raylib.h"
 #include "ElementRules.h"
 
+class InputHandler;
+
 class SandStorm 
 {
 public:
@@ -16,6 +18,18 @@ public:
 
 	void Update(float deltaTime);
 	void Render();
+
+	void ManipulateCell(bool state, int x, int y, Element::Elements placeElement, int overrideBrushSize = 0);
+	void ExportScreenShot();
+	
+	int brushSize = 10;
+	int brushSizeScaler = 5;
+	
+	Element::Elements currentElement = Element::Elements::SAND;
+
+	Sound removeAutoSFX;
+	Sound resetSFX;
+	Sound placeAutoSFX;
 
 	typedef struct CellInfo {
 		unsigned char type = 0;
@@ -37,26 +51,27 @@ public:
 			this->placeElement = placeElement;
 		}
 	};
+	std::vector<AutoCellManipulator> autoManipulators;
+	
+	bool shouldUpdate = true;
+	bool skipTimerActive = false;
+	bool showHudInfo = true;
 
 private:
 	void UpdateCell(int x, int y);
-	void ManipulateCell(bool state, int x, int y, Element::Elements placeElement, int overrideBrushSize = 0);
 	
 	void SetCell(int index, Element::Elements element, bool markUpdated = true);
 	void SwapCell(int fromIndex, int toIndex, Element::Elements swapA, Element::Elements swapB);
 
-	void HandleInput(int mouseX, int mouseY);
 	void HandleCellSwitching();
 
 	bool IsOutOfBounds(int x, int y);
 	bool GetChance(float input);
-	void ExportScreenShot();
 
 	std::string GetElementString();
-	std::vector<AutoCellManipulator> autoManipulators;
 
+	InputHandler* inputHandler = nullptr;
 	ElementRules* elementRules = nullptr;
-	Element::Elements currentElement = Element::Elements::SAND;
 
 	Color UNOCCUPIED_CELL = Color(0, 0, 0, 255);
 	
@@ -68,17 +83,8 @@ private:
 	int cursorOrigin = 7;
 	char timeBuffer[20];
 
-	bool shouldUpdate = true;
-	bool skipTimerActive = false;
-	bool showHudInfo = true;
 
 	float cellPlacingNoRandomization = 0;
 	float cellPlacingRandomization = 99;
-	
-	int brushSizeScaler = 5;
-	int brushSize = 10;
 
-	Sound removeAutoSFX;
-	Sound resetSFX;
-	Sound placeAutoSFX;
 };

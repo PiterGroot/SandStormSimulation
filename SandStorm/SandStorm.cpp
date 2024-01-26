@@ -1,10 +1,10 @@
 #include "SandStorm.h"
+#include "InputHandler.h"
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
 int size = WIDTH * HEIGHT;
-Vector2 screenCenter = Vector2(WIDTH / 2, HEIGHT / 2);
 
 Color pixels[WIDTH * HEIGHT];
 SandStorm::CellInfo map[WIDTH * HEIGHT];
@@ -23,6 +23,7 @@ SandStorm::SandStorm() //constructor
 
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
+    inputHandler = new InputHandler(this, Vector2(WIDTH / 2, HEIGHT / 2));
     
     srand(time(0)); //set randoms seed
     InitAudioDevice();
@@ -40,10 +41,10 @@ SandStorm::~SandStorm() //deconstructor
 //Main update loop
 void SandStorm::Update(float deltaTime)
 {
-    this->mousePosition = GetMousePosition();
-    
     HandleCellSwitching();
-    HandleInput((int)mousePosition.x, (int)mousePosition.y);
+
+    mousePosition = GetMousePosition();
+    inputHandler->OnUpdate(mousePosition); //update general input checks
 
     //Try update all active cells
     if (shouldUpdate)
@@ -247,71 +248,6 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, Element::Elements
                     SetCell(index, Element::UNOCCUPIED, false);
             }
         }
-    }
-}
-
-//General input checks
-void SandStorm::HandleInput(int mouseX, int mouseY)
-{
-    if (IsMouseButtonDown(0)) //placing cells
-        ManipulateCell(true, mouseX, mouseY, currentElement);
-
-    if (IsMouseButtonDown(1)) //removing cells
-        ManipulateCell(false, mouseX, mouseY, currentElement);
-
-    if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
-    {
-        brushSize -= IsKeyDown(KEY_LEFT_CONTROL) ? brushSizeScaler : 1;
-        brushSize = std::max(brushSize, 1);
-    }
-
-    if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decrease brush size
-        brushSize += IsKeyDown(KEY_LEFT_CONTROL) ? brushSizeScaler : 1;
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
-        ExportScreenShot();
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(0)) //create auto placer
-    {
-        PlaySound(placeAutoSFX);
-        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, true, currentElement));
-    }
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(1)) //create auto destroyer
-    {
-        PlaySound(placeAutoSFX);
-        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, false));
-    }
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Z)) //undo last auto cell manipulator
-    {
-        if (autoManipulators.size() == 0)
-            return;
-
-        PlaySound(removeAutoSFX);
-        autoManipulators.pop_back();
-    }
-
-    if (IsKeyPressed(KEY_TAB)) //reset sim
-    {
-        PlaySound(resetSFX);
-        autoManipulators.clear();
-        ManipulateCell(false, screenCenter.x, screenCenter.y, Element::Elements::UNOCCUPIED, 256);
-    }
-
-    if (IsKeyPressed(KEY_GRAVE)) //toggle ui/debug info
-        showHudInfo = !showHudInfo;
-
-    if (IsKeyPressed(KEY_SPACE)) //toggle updating
-    {
-        shouldUpdate = !shouldUpdate;
-        skipTimerActive = !shouldUpdate;
-    }
-
-    if (IsKeyPressed(KEY_RIGHT)) //go couple frames forward
-    {
-        shouldUpdate = true;
-        skipTimerActive = true;
     }
 }
 
