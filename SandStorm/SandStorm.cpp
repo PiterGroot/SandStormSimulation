@@ -1,10 +1,10 @@
 #include "SandStorm.h"
+#include "InputHandler.h"
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
 int size = WIDTH * HEIGHT;
-Vector2 screenCenter = Vector2(WIDTH / 2, HEIGHT / 2);
 
 Color pixels[WIDTH * HEIGHT];
 SandStorm::CellInfo map[WIDTH * HEIGHT];
@@ -23,6 +23,7 @@ SandStorm::SandStorm() //constructor
 
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
+    inputHandler = new InputHandler(this, Vector2(WIDTH / 2, HEIGHT / 2));
     
     srand(time(0)); //set randoms seed
     InitAudioDevice();
@@ -35,15 +36,16 @@ SandStorm::SandStorm() //constructor
 SandStorm::~SandStorm() //deconstructor
 {
     delete elementRules;
+    delete inputHandler;
 }
 
 //Main update loop
 void SandStorm::Update(float deltaTime)
 {
-    this->mousePosition = GetMousePosition();
-    
     HandleCellSwitching();
-    HandleInput((int)mousePosition.x, (int)mousePosition.y);
+
+    mousePosition = GetMousePosition();
+    inputHandler->OnUpdate(mousePosition); //update general input checks
 
     //Try update all active cells
     if (shouldUpdate)
@@ -86,11 +88,11 @@ void SandStorm::Render()
 
         if(showHudInfo)
             DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
-        ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
+        if(shouldUpdate)
+            ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
     }
 
     EndDrawing();
-
     if (skipTimerActive)
         shouldUpdate = false;
 }
@@ -101,7 +103,7 @@ void SandStorm::UpdateCell(int x, int y)
     int oldIndex = x + WIDTH * y;
     int currentCell = map[oldIndex].type;
     
-    if (currentCell == 0) //skip air (empty) cells
+    if (currentCell == 0 || currentCell == 3) //skip air (empty)/wall cells
         return;
 
     if (map[oldIndex].isUpdated) //skip cell if it has already beed updated this frame
@@ -111,11 +113,8 @@ void SandStorm::UpdateCell(int x, int y)
     }
 
     Element::Elements currentElement = static_cast<Element::Elements>(currentCell);
-    if (currentElement == Element::Elements::WALL) //skip walls
-        return;
-
     auto& cellRuleSet = elementRules->getRuleSet[currentElement]; //get the right ruleset based on cell element type
-    
+
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
         Vector2 checkVector = elementRules->ruleValues[rule];
@@ -125,17 +124,36 @@ void SandStorm::UpdateCell(int x, int y)
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
 
-        int newIndex = (x + xPos) + WIDTH * (y + yPos);
         //try to go to desired postion based on current rule
+        int newIndex = (x + xPos) + WIDTH * (y + yPos);
         if (map[newIndex].type == 0) 
         {
             SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
             SetCell(newIndex, currentElement);
+
+            if (currentCell == 9) {
+
+                map[newIndex].updateTick = map[oldIndex].updateTick;
+                map[newIndex].lifeTime = map[oldIndex].lifeTime;
+                map[newIndex].updateTick++;
+
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
+
+                if (map[newIndex].updateTick == map[newIndex].lifeTime)
+                {
+                    map[newIndex].updateTick = 0;
+                    map[newIndex].lifeTime = 0;
+                    SetCell(newIndex, GetChance(90) ? Element::Elements::SMOKE : Element::Elements::UNOCCUPIED, true);
+                    break;
+                }
+            }
             break;
         }
         
+        #pragma region CellInteractions
         //swap sand with water if sand falls on top of water
-        if (currentCell == 1 && map[newIndex].type == 2) 
+        if (currentCell == 1 && map[newIndex].type == 2)
         {
             SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
             break;
@@ -144,7 +162,7 @@ void SandStorm::UpdateCell(int x, int y)
         //create smoke when water or sand touches 
         bool createObsidianFromSand = currentCell == 1 && map[newIndex].type == 5;
         bool createObsidianFromWater = currentCell == 2 && map[newIndex].type == 5;
-        
+
         if (createObsidianFromSand || createObsidianFromWater)
         {
             SetCell(oldIndex, Element::Elements::SMOKE);
@@ -153,17 +171,65 @@ void SandStorm::UpdateCell(int x, int y)
         }
 
         if (currentCell == 5 && map[newIndex].type == 1) //create obsidian when lava touches sand
+        {
             SetCell(newIndex, Element::Elements::OBSIDIAN);
+            break;
+        }
 
         if (currentCell == 5 && map[newIndex].type == 7) //create fire when lava touches wood
-            SetCell(newIndex, Element::Elements::FIRE);
+        {
+            SetCell(newIndex, Element::Elements::STATIONARY_FIRE);
+            break;
+        }
 
         //TODDO: Working on fire behaviour needs lots of attention
-        if (currentCell == 7) {
-            int upIndex = (x) + WIDTH * (y - 1);
-            if (map[upIndex].type == 8)
-                SetCell(oldIndex, Element::Elements::FIRE);
+        if (currentCell == 7) 
+        {
+            int upIndex = (x)+WIDTH * (y - 1);
+            int downIndex = (x)+WIDTH * (y + 1);
+            int leftIndex = (x - 1)+WIDTH * (y);
+            int rightIndex = (x + 1)+WIDTH * (y);
+
+            if (map[upIndex].type == 8 || map[downIndex].type == 8 || map[leftIndex].type == 8 || map[rightIndex].type == 8) 
+            {
+                map[oldIndex].updateTick++;
+
+                if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
+                {
+                    map[oldIndex].updateTick = 0;
+                    SetCell(oldIndex, Element::Elements::STATIONARY_FIRE, true);
+                    break;
+                }
+            }
         }
+
+        if (currentCell == 8) //fire despawning
+        {
+            map[oldIndex].updateTick++;
+            if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
+            {
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
+                SetCell(oldIndex, GetChance(90) ? Element::Elements::SMOKE : Element::Elements::UNOCCUPIED, true);
+                break;
+            }
+        }
+
+        if (currentCell == 9) //fire -> wood -> fire
+        {
+            int upIndex = (x)+WIDTH * (y - 1);
+            if (map[upIndex].type == 7)
+            {
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
+
+                SetCell(oldIndex, Element::Elements::UNOCCUPIED, true);
+                SetCell(upIndex, Element::Elements::STATIONARY_FIRE, true);
+                break;
+            }
+
+        }
+        #pragma endregion
     }
 }
 
@@ -173,6 +239,15 @@ void SandStorm::SetCell(int index, Element::Elements element, bool markUpdated)
     pixels[index] = elementRules->GetCellColor(element);
     map[index].type = element;
     map[index].isUpdated = markUpdated;
+
+    if (element == Element::Elements::STATIONARY_FIRE)
+        map[index].lifeTime = GetRandomValue(75, 275);
+
+    if (element == Element::Elements::FIRE)
+        map[index].lifeTime = GetRandomValue(25, 100);
+
+    if (element == Element::Elements::WOOD)
+        map[index].lifeTime = GetRandomValue(10, 25);
 }
 
 //Helper method for swapping two cells with each other
@@ -197,7 +272,6 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, Element::Elements
         for (int y = -brushSize; y < brushSize; y++)
         {
             int index = (x + xPos) + WIDTH * (y + yPos);
-
             if (IsOutOfBounds(xPos + x, yPos + y)) //check for all brush positions if it is out of bounds
                 continue;
             
@@ -213,75 +287,15 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, Element::Elements
             }
             else //destroying cells
             {
-                if (map[index].type > 0)
+                if (map[index].type > 0) 
+                {
                     SetCell(index, Element::UNOCCUPIED, false);
+                    map[index].isUpdated = false;
+                    map[index].lifeTime = 0;
+                    map[index].updateTick = 0;
+                }
             }
         }
-    }
-}
-
-//General input checks
-void SandStorm::HandleInput(int mouseX, int mouseY)
-{
-    if (IsMouseButtonDown(0)) //placing cells
-        ManipulateCell(true, mouseX, mouseY, currentElement);
-
-    if (IsMouseButtonDown(1)) //removing cells
-        ManipulateCell(false, mouseX, mouseY, currentElement);
-
-    if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
-    {
-        brushSize -= IsKeyDown(KEY_LEFT_CONTROL) ? brushSizeScaler : 1;
-        brushSize = std::max(brushSize, 1);
-    }
-
-    if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decrease brush size
-        brushSize += IsKeyDown(KEY_LEFT_CONTROL) ? brushSizeScaler : 1;
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
-        ExportScreenShot();
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(0)) //create auto placer
-    {
-        PlaySound(placeAutoSFX);
-        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, true, currentElement));
-    }
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(1)) //create auto destroyer
-    {
-        PlaySound(placeAutoSFX);
-        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, false));
-    }
-
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Z)) //undo last auto cell manipulator
-    {
-        if (autoManipulators.size() == 0)
-            return;
-
-        PlaySound(removeAutoSFX);
-        autoManipulators.pop_back();
-    }
-
-    if (IsKeyPressed(KEY_TAB)) //reset sim
-    {
-        PlaySound(resetSFX);
-        autoManipulators.clear();
-        ManipulateCell(false, screenCenter.x, screenCenter.y, Element::Elements::UNOCCUPIED, 256);
-    }
-
-    if (IsKeyPressed(KEY_GRAVE)) //toggle ui/debug info
-        showHudInfo = !showHudInfo;
-
-    if (IsKeyPressed(KEY_SPACE)) //toggle updating
-    {
-        shouldUpdate = !shouldUpdate;
-        skipTimerActive = !shouldUpdate;
-    }
-
-    if (IsKeyPressed(KEY_RIGHT)) //go couple frames forward
-    {
-        shouldUpdate = true;
-        skipTimerActive = true;
     }
 }
 
@@ -305,6 +319,9 @@ void SandStorm::HandleCellSwitching()
     
     if (IsKeyPressed(KEY_SIX))
         currentElement = Element::Elements::WOOD;
+
+    if (IsKeyPressed(KEY_SEVEN))
+        currentElement = Element::Elements::FIRE;
 }
 
 //Helper method for creating and exporting screenshots
@@ -360,6 +377,7 @@ std::string SandStorm::GetElementString()
         case 4:  return "Smoke " +     std::to_string(brushSize);
         case 5:  return "Lava " +      std::to_string(brushSize);
         case 7:  return "Wood " +      std::to_string(brushSize);
+        case 9:  return "Fire " +      std::to_string(brushSize);
         default: return "UNDIFINED " + std::to_string(brushSize);
     }
 }

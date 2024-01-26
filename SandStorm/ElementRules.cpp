@@ -17,15 +17,20 @@ ElementRules::ElementRules()
     waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
     smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
     lavaRules =  { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
+    fireRules =  { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
+    
     woodRules =  { STAY };
+    stationaryFireRules =  { STAY };
 
     // Initialize getRuleSet map
     getRuleSet = {
-        { Element::Elements::SAND,   sandRules  },
-        { Element::Elements::WATER,  waterRules },
-        { Element::Elements::SMOKE,  smokeRules },
-        { Element::Elements::LAVA,   lavaRules  },
-        { Element::Elements::WOOD,   woodRules  }
+        { Element::Elements::SAND,                        sandRules  },
+        { Element::Elements::WATER,                       waterRules },
+        { Element::Elements::SMOKE,                       smokeRules },
+        { Element::Elements::LAVA,                        lavaRules  },
+        { Element::Elements::WOOD,                        woodRules  },
+        { Element::Elements::FIRE,                        fireRules  },
+        { Element::Elements::STATIONARY_FIRE,   stationaryFireRules  }
     };
 
     // Initialize cell base color values
@@ -36,7 +41,6 @@ ElementRules::ElementRules()
         { Element::Elements::SMOKE,      Color(150, 150, 150, 255) },
         { Element::Elements::LAVA,       Color(255, 77, 28, 255)   },
         { Element::Elements::WOOD,       Color(130, 65, 0, 255)    },
-        { Element::Elements::FIRE,       Color(255, 48, 33, 255)   },
     };
     
     // Initialize ruleValues map
@@ -60,6 +64,20 @@ Color ElementRules::GetCellColor(Element::Elements element)
         return BLACK;
     if (element == Element::Elements::OBSIDIAN)
         return BLACK;
+    
+    bool isFireElement = element == Element::Elements::STATIONARY_FIRE || element == Element::Elements::FIRE;
+    if (isFireElement) //special colors for fire
+    {
+        int randColor = GetRandomValue(1, 5);
+        switch (randColor)
+        {
+            case 1: return Color(156, 43, 17, 255);
+            case 2: return Color(255, 106, 0, 255);
+            case 3: return Color(127, 0, 0, 255);
+            case 4: return Color(255, 151, 0, 255);
+            case 5: return Color(127, 51, 0, 255);
+        }
+    }
     
     Color baseColor = cellColorValues[element];
     int randAlpha = GetRandomValue(aplhaRandomness, 255); // randomize alpha

@@ -137,12 +137,14 @@
   <ItemGroup>
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="ElementRules.cpp" />
+    <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="SandStorm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Element.h" />
     <ClInclude Include="ElementRules.h" />
+    <ClInclude Include="InputHandler.h" />
     <ClInclude Include="SandStorm.h" />
   </ItemGroup>
   <ItemGroup>
