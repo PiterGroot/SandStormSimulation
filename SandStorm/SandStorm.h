@@ -17,9 +17,28 @@ public:
 	void Update(float deltaTime);
 	void Render();
 
+	typedef struct CellInfo {
+		unsigned char type = 0;
+		bool isUpdated = false;
+	};
+
+	typedef struct AutoCellManipulator {
+		bool mode;
+		Vector3 position;
+		Element::Elements placeElement;
+
+		AutoCellManipulator() {};
+		AutoCellManipulator(Vector2 position, int brushSize, bool mode, Element::Elements placeElement = Element::Elements::UNOCCUPIED)
+		{
+			this->mode = mode;
+			this->position = Vector3(position.x, position.y, brushSize);
+			this->placeElement = placeElement;
+		}
+	};
+
 private:
 	void UpdateCell(int x, int y);
-	void ManipulateCell(bool state, int x, int y, int overrideBrushSize = 0);
+	void ManipulateCell(bool state, int x, int y, Element::Elements placeElement, int overrideBrushSize = 0);
 	
 	void SetCell(int index, Element::Elements element, bool markUpdated = true);
 	void SwapCell(int fromIndex, int toIndex, Element::Elements swapA, Element::Elements swapB);
@@ -32,20 +51,6 @@ private:
 	void ExportScreenShot();
 
 	std::string GetElementString();
-
-	typedef struct AutoCellManipulator {
-
-		Vector3 position;
-		bool mode;
-
-		AutoCellManipulator() {};
-		AutoCellManipulator(Vector2 position, int brushSize, bool mode)
-		{
-			this->position = Vector3(position.x, position.y, brushSize);
-			this->mode = mode;
-		}
-	};
-
 	std::vector<AutoCellManipulator> autoManipulators;
 
 	ElementRules* elementRules = nullptr;
@@ -62,10 +67,8 @@ private:
 	char timeBuffer[20];
 
 	bool shouldUpdate = true;
-
-	float skipTimer;
-	float skipTime = .01f;
 	bool skipTimerActive = false;
+	bool showHudInfo = true;
 
 	float cellPlacingNoRandomization = 0;
 	float cellPlacingRandomization = 99;
@@ -73,7 +76,7 @@ private:
 	int brushSizeScaler = 5;
 	int brushSize = 10;
 
-	Sound placeSFX;
-	Sound place1SFX;
-	Sound place2SFX;
+	Sound removeAutoSFX;
+	Sound resetSFX;
+	Sound placeAutoSFX;
 };

@@ -6,13 +6,8 @@ constexpr auto HEIGHT = 512;
 int size = WIDTH * HEIGHT;
 Vector2 screenCenter = Vector2(WIDTH / 2, HEIGHT / 2);
 
-typedef struct CellInfo {
-    unsigned char type = 0;
-    bool isUpdated = false;
-};
-
 Color pixels[WIDTH * HEIGHT];
-CellInfo map[WIDTH * HEIGHT];
+SandStorm::CellInfo map[WIDTH * HEIGHT];
 
 SandStorm::SandStorm() //constructor
 {
@@ -32,9 +27,9 @@ SandStorm::SandStorm() //constructor
     srand(time(0)); //set randoms seed
     InitAudioDevice();
 
-    placeSFX =  LoadSound("Resources/Audio/place.wav");
-    place1SFX = LoadSound("Resources/Audio/place1.wav");
-    place2SFX = LoadSound("Resources/Audio/place2.wav");
+    removeAutoSFX =  LoadSound("Resources/Audio/removeAuto.wav");
+    resetSFX = LoadSound("Resources/Audio/reset.wav");
+    placeAutoSFX = LoadSound("Resources/Audio/placeAuto.wav");
 }
 
 SandStorm::~SandStorm() //deconstructor
@@ -71,14 +66,16 @@ void SandStorm::Render()
     ClearBackground(BLACK);
 
     DrawTexture(screenTexture, 0, 0, WHITE);
-
     //draw custom cursor
     Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
     DrawTexture(cursor, cursorPosition.x, cursorPosition.y, WHITE);
 
-    DrawFPS(0, 0); //draw fps
-    DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
-    DrawText(shouldUpdate ? "Active" : "Paused", 256 - 45, 0, 24, GREEN); //draw update state label
+    if (showHudInfo) 
+    {
+        DrawFPS(0, 0); //draw fps
+        DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
+        DrawText(shouldUpdate ? "Active" : "Paused", 256 - 45, 0, 24, GREEN); //draw update state label
+    }
 
     //Update auto cell manipulators at end of frame
     for (const auto& manipulator : SandStorm::autoManipulators)
@@ -87,8 +84,9 @@ void SandStorm::Render()
         float xPos = manipulator.position.x;
         float yPos = manipulator.position.y;
 
-        DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
-        ManipulateCell(manipulator.mode, xPos, yPos, manipulator.position.z);
+        if(showHudInfo)
+            DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
+        ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
     }
 
     EndDrawing();
@@ -191,7 +189,7 @@ void SandStorm::SwapCell(int fromIndex, int toIndex, Element::Elements swapA, El
 }
 
 //Placing / destroying cells with mouse
-void SandStorm::ManipulateCell(bool state, int xPos, int yPos, int overrideBrushSize)
+void SandStorm::ManipulateCell(bool state, int xPos, int yPos, Element::Elements placeElement, int overrideBrushSize)
 {
     int brushSize = overrideBrushSize == 0 ? this->brushSize : overrideBrushSize;
     for (int x = -brushSize; x < brushSize; x++)
@@ -206,11 +204,11 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, int overrideBrush
             if (state) //placing cells 
             {
                 //placing fill chance based on current element and brush size
-                float fillChance = (currentElement == Element::Elements::WALL || currentElement == Element::Elements::WOOD) ? cellPlacingNoRandomization : cellPlacingRandomization;
+                float fillChance = (placeElement == Element::Elements::WALL || placeElement == Element::Elements::WOOD) ? cellPlacingNoRandomization : cellPlacingRandomization;
                 if (GetChance(fillChance))
                 {
                     if (map[index].type == 0)
-                        SetCell(index, currentElement, false);
+                        SetCell(index, placeElement, false);
                 }
             }
             else //destroying cells
@@ -226,13 +224,10 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, int overrideBrush
 void SandStorm::HandleInput(int mouseX, int mouseY)
 {
     if (IsMouseButtonDown(0)) //placing cells
-        ManipulateCell(true, mouseX, mouseY);
+        ManipulateCell(true, mouseX, mouseY, currentElement);
 
     if (IsMouseButtonDown(1)) //removing cells
-        ManipulateCell(false, mouseX, mouseY);
-
-    if(IsMouseButtonPressed(0))
-        PlaySound(placeSFX);
+        ManipulateCell(false, mouseX, mouseY, currentElement);
 
     if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
     {
@@ -246,24 +241,36 @@ void SandStorm::HandleInput(int mouseX, int mouseY)
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
         ExportScreenShot();
 
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(1)) //create auto destroyer
-        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, false));
-
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(0)) //create auto placer
-        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, true));
+    {
+        PlaySound(placeAutoSFX);
+        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, true, currentElement));
+    }
+
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(1)) //create auto destroyer
+    {
+        PlaySound(placeAutoSFX);
+        autoManipulators.push_back(AutoCellManipulator(mousePosition, brushSize, false));
+    }
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Z)) //undo last auto cell manipulator
     {
         if (autoManipulators.size() == 0)
             return;
 
+        PlaySound(removeAutoSFX);
         autoManipulators.pop_back();
     }
 
-    if (IsKeyPressed(KEY_TAB))
+    if (IsKeyPressed(KEY_TAB)) //reset sim
     {
-        ManipulateCell(false, screenCenter.x, screenCenter.y, 256);
+        PlaySound(resetSFX);
+        autoManipulators.clear();
+        ManipulateCell(false, screenCenter.x, screenCenter.y, Element::Elements::UNOCCUPIED, 256);
     }
+
+    if (IsKeyPressed(KEY_GRAVE)) //toggle ui/debug info
+        showHudInfo = !showHudInfo;
 
     if (IsKeyPressed(KEY_SPACE)) //toggle updating
     {
