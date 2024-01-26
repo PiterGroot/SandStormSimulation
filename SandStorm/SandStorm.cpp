@@ -86,11 +86,11 @@ void SandStorm::Render()
 
         if(showHudInfo)
             DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
-        ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
+        if(shouldUpdate)
+            ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
     }
 
     EndDrawing();
-
     if (skipTimerActive)
         shouldUpdate = false;
 }
@@ -101,7 +101,7 @@ void SandStorm::UpdateCell(int x, int y)
     int oldIndex = x + WIDTH * y;
     int currentCell = map[oldIndex].type;
     
-    if (currentCell == 0) //skip air (empty) cells
+    if (currentCell == 0 || currentCell == 3) //skip air (empty)/wall cells
         return;
 
     if (map[oldIndex].isUpdated) //skip cell if it has already beed updated this frame
@@ -111,11 +111,8 @@ void SandStorm::UpdateCell(int x, int y)
     }
 
     Element::Elements currentElement = static_cast<Element::Elements>(currentCell);
-    if (currentElement == Element::Elements::WALL) //skip walls
-        return;
-
     auto& cellRuleSet = elementRules->getRuleSet[currentElement]; //get the right ruleset based on cell element type
-    
+
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
         Vector2 checkVector = elementRules->ruleValues[rule];
@@ -125,8 +122,8 @@ void SandStorm::UpdateCell(int x, int y)
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
 
-        int newIndex = (x + xPos) + WIDTH * (y + yPos);
         //try to go to desired postion based on current rule
+        int newIndex = (x + xPos) + WIDTH * (y + yPos);
         if (map[newIndex].type == 0) 
         {
             SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
@@ -134,8 +131,9 @@ void SandStorm::UpdateCell(int x, int y)
             break;
         }
         
+        #pragma region CellInteractions
         //swap sand with water if sand falls on top of water
-        if (currentCell == 1 && map[newIndex].type == 2) 
+        if (currentCell == 1 && map[newIndex].type == 2)
         {
             SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
             break;
@@ -144,7 +142,7 @@ void SandStorm::UpdateCell(int x, int y)
         //create smoke when water or sand touches 
         bool createObsidianFromSand = currentCell == 1 && map[newIndex].type == 5;
         bool createObsidianFromWater = currentCell == 2 && map[newIndex].type == 5;
-        
+
         if (createObsidianFromSand || createObsidianFromWater)
         {
             SetCell(oldIndex, Element::Elements::SMOKE);
@@ -160,10 +158,11 @@ void SandStorm::UpdateCell(int x, int y)
 
         //TODDO: Working on fire behaviour needs lots of attention
         if (currentCell == 7) {
-            int upIndex = (x) + WIDTH * (y - 1);
+            int upIndex = (x)+WIDTH * (y - 1);
             if (map[upIndex].type == 8)
                 SetCell(oldIndex, Element::Elements::FIRE);
         }
+        #pragma endregion
     }
 }
 
