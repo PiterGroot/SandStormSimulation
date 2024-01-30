@@ -4,10 +4,14 @@
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
 
-int size = WIDTH * HEIGHT;
+constexpr int size = WIDTH * HEIGHT;
 
-Color pixels[WIDTH * HEIGHT];
-SandStorm::CellInfo map[WIDTH * HEIGHT];
+Color pixels[size];
+SandStorm::CellInfo map[size];
+
+//TODOS:
+//Randomize cell rules a bit, left, right ect
+//Use 2 simulation arrays when updating cells only look to the old simulation, fill it with current simulation at start of update loop
 
 SandStorm::SandStorm() //constructor
 {
@@ -124,9 +128,10 @@ void SandStorm::UpdateCell(int x, int y)
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
 
-        //try to go to desired postion based on current rule
         int newIndex = (x + xPos) + WIDTH * (y + yPos);
-        if (map[newIndex].type == 0) 
+        int newIndexType = map[newIndex].type;
+
+        if (newIndexType == 0) //try to go to desired postion based on current rule, if next index is empty
         {
             SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
             SetCell(newIndex, currentElement);
@@ -153,15 +158,15 @@ void SandStorm::UpdateCell(int x, int y)
         
         #pragma region CellInteractions
         //swap sand with water if sand falls on top of water
-        if (currentCell == 1 && map[newIndex].type == 2)
+        if (currentCell == 1 && newIndexType == 2)
         {
             SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
             break;
         }
 
         //create smoke when water or sand touches 
-        bool createObsidianFromSand = currentCell == 1 && map[newIndex].type == 5;
-        bool createObsidianFromWater = currentCell == 2 && map[newIndex].type == 5;
+        bool createObsidianFromSand = currentCell == 1 && newIndexType == 5;
+        bool createObsidianFromWater = currentCell == 2 && newIndexType == 5;
 
         if (createObsidianFromSand || createObsidianFromWater)
         {
@@ -170,13 +175,13 @@ void SandStorm::UpdateCell(int x, int y)
             break;
         }
 
-        if (currentCell == 5 && map[newIndex].type == 1) //create obsidian when lava touches sand
+        if (currentCell == 5 && newIndexType == 1) //create obsidian when lava touches sand
         {
             SetCell(newIndex, Element::Elements::OBSIDIAN);
             break;
         }
 
-        if (currentCell == 5 && map[newIndex].type == 7) //create fire when lava touches wood
+        if (currentCell == 5 && newIndexType == 7) //create fire when lava touches wood
         {
             SetCell(newIndex, Element::Elements::STATIONARY_FIRE);
             break;
