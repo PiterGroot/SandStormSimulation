@@ -7,8 +7,8 @@
 
 #include "raylib.h"
 #include "ElementRules.h"
-
-class InputHandler;
+#include "InputHandler.h"
+#include "ImageImporter.h"
 
 class SandStorm 
 {
@@ -19,14 +19,18 @@ public:
 	void Update(float deltaTime);
 	void Render();
 
+	void SetCell(int index, Element::Elements element, bool markUpdated = true);
 	void ManipulateCell(bool state, int x, int y, Element::Elements placeElement, int overrideBrushSize = 0);
+
+	void ResetSim();
 	void ExportScreenShot();
-	
+
 	int brushSize = 10;
 	int brushSizeScaler = 5;
 	
+	static SandStorm* instance;
 	Element::Elements currentElement = Element::Elements::SAND;
-
+		
 	Sound removeAutoSFX;
 	Sound resetSFX;
 	Sound placeAutoSFX;
@@ -52,6 +56,7 @@ public:
 		}
 	};
 	std::vector<AutoCellManipulator> autoManipulators;
+	ImageImporter* imageImporter = nullptr;
 	
 	bool shouldUpdate = true;
 	bool skipTimerActive = false;
@@ -60,7 +65,6 @@ public:
 private:
 	void UpdateCell(int x, int y);
 	
-	void SetCell(int index, Element::Elements element, bool markUpdated = true);
 	void SwapCell(int fromIndex, int toIndex, Element::Elements swapA, Element::Elements swapB);
 
 	void HandleCellSwitching();
@@ -83,8 +87,6 @@ private:
 	int cursorOrigin = 7;
 	char timeBuffer[20];
 
-
 	float cellPlacingNoRandomization = 0;
 	float cellPlacingRandomization = 99;
-
 };

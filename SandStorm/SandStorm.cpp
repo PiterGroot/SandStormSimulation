@@ -1,5 +1,6 @@
 #include "SandStorm.h"
-#include "InputHandler.h"
+
+SandStorm* SandStorm::instance = nullptr;
 
 constexpr auto WIDTH = 512;
 constexpr auto HEIGHT = 512;
@@ -9,12 +10,9 @@ constexpr int size = WIDTH * HEIGHT;
 Color pixels[size];
 SandStorm::CellInfo map[size];
 
-//TODOS:
-//Randomize cell rules a bit, left, right ect
-//Use 2 simulation arrays when updating cells only look to the old simulation, fill it with current simulation at start of update loop
-
 SandStorm::SandStorm() //constructor
 {
+    instance = this;
     cursor = LoadTexture("Textures/cursor.png");
 
     screenImage = GenImageColor(WIDTH, HEIGHT, UNOCCUPIED_CELL);
@@ -27,8 +25,9 @@ SandStorm::SandStorm() //constructor
 
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
-    inputHandler = new InputHandler(this, Vector2(WIDTH / 2, HEIGHT / 2));
-    
+    inputHandler = new InputHandler(Vector2(WIDTH / 2, HEIGHT / 2)); //create InputHandler ref
+    imageImporter = new ImageImporter(WIDTH); //create ImageImporter ref
+
     srand(time(0)); //set randoms seed
     InitAudioDevice();
 
@@ -90,10 +89,8 @@ void SandStorm::Render()
         float xPos = manipulator.position.x;
         float yPos = manipulator.position.y;
 
-        if(showHudInfo)
-            DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
-        if(shouldUpdate)
-            ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
+        if(showHudInfo) DrawRectangleLines(xPos - manipulator.position.z, yPos - manipulator.position.z, scale, scale, manipulator.mode ? GREEN : RED);
+        if(shouldUpdate) ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
     }
 
     EndDrawing();
@@ -307,6 +304,9 @@ void SandStorm::ManipulateCell(bool state, int xPos, int yPos, Element::Elements
 //Switching between elements
 void SandStorm::HandleCellSwitching()
 {
+    if (IsKeyDown(KEY_LEFT_CONTROL)) //ignore when holding ctrl (messes with other shortcuts)
+        return;
+
     if (IsKeyPressed(KEY_ONE))
         currentElement = Element::Elements::SAND;
 
@@ -327,6 +327,14 @@ void SandStorm::HandleCellSwitching()
 
     if (IsKeyPressed(KEY_SEVEN))
         currentElement = Element::Elements::FIRE;
+}
+
+//Helper method for clearing the simulation grid
+void SandStorm::ResetSim()
+{
+    PlaySound(SandStorm::instance->resetSFX);
+    autoManipulators.clear();
+    ManipulateCell(false, WIDTH / 2, HEIGHT / 2, Element::Elements::UNOCCUPIED, WIDTH / 2);
 }
 
 //Helper method for creating and exporting screenshots

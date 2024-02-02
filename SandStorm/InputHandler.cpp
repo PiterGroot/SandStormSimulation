@@ -1,71 +1,69 @@
 #include "InputHandler.h"
+#include "SandStorm.h"
 
-InputHandler::InputHandler(SandStorm* engine, Vector2 screenCenter)
+InputHandler::InputHandler(Vector2 screenCenter)
 {
-    this->engine = engine;
     this->screenCenter = screenCenter;
 }
 
 void InputHandler::OnUpdate(Vector2 mousePosition)
 {
+    SandStorm::instance->imageImporter->OnUpdate();
+
     if (IsMouseButtonDown(0)) //placing cells
-        engine->ManipulateCell(true, mousePosition.x, mousePosition.y, engine->currentElement);
+        SandStorm::instance->ManipulateCell(true, mousePosition.x, mousePosition.y, SandStorm::instance->currentElement);
 
     if (IsMouseButtonDown(1)) //removing cells
-        engine->ManipulateCell(false, mousePosition.x, mousePosition.y, engine->currentElement);
+        SandStorm::instance->ManipulateCell(false, mousePosition.x, mousePosition.y, SandStorm::instance->currentElement);
 
     if (IsKeyPressed(KEY_LEFT_BRACKET)) //increase brush size
     {
-        engine->brushSize -= IsKeyDown(KEY_LEFT_CONTROL) ? engine->brushSizeScaler : 1;
-        engine->brushSize = std::max(engine->brushSize, 1);
+        SandStorm::instance->brushSize -= IsKeyDown(KEY_LEFT_CONTROL) ? SandStorm::instance->brushSizeScaler : 1;
+        SandStorm::instance->brushSize = std::max(SandStorm::instance->brushSize, 1);
     }
 
     if (IsKeyPressed(KEY_RIGHT_BRACKET)) //decrease brush size
-        engine->brushSize += IsKeyDown(KEY_LEFT_CONTROL) ? engine->brushSizeScaler : 1;
+        SandStorm::instance->brushSize += IsKeyDown(KEY_LEFT_CONTROL) ? SandStorm::instance->brushSizeScaler : 1;
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) //make screenshot
-        engine->ExportScreenShot();
+        SandStorm::instance->ExportScreenShot();
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(0)) //create auto placer
     {
-        PlaySound(engine->placeAutoSFX);
-        engine->autoManipulators.push_back(SandStorm::AutoCellManipulator(mousePosition, engine->brushSize, true, engine->currentElement));
+        PlaySound(SandStorm::instance->placeAutoSFX);
+        SandStorm::instance->autoManipulators.push_back(SandStorm::AutoCellManipulator(mousePosition, SandStorm::instance->brushSize, true, SandStorm::instance->currentElement));
     }
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsMouseButtonPressed(1)) //create auto destroyer
     {
-        PlaySound(engine->placeAutoSFX);
-        engine->autoManipulators.push_back(SandStorm::AutoCellManipulator(mousePosition, engine->brushSize, false));
+        PlaySound(SandStorm::instance->placeAutoSFX);
+        SandStorm::instance->autoManipulators.push_back(SandStorm::AutoCellManipulator(mousePosition, SandStorm::instance->brushSize, false));
     }
 
     if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Z)) //undo last auto cell manipulator
     {
-        if (engine->autoManipulators.size() == 0)
+        if (SandStorm::instance->autoManipulators.size() == 0)
             return;
 
-        PlaySound(engine->removeAutoSFX);
-        engine->autoManipulators.pop_back();
+        PlaySound(SandStorm::instance->removeAutoSFX);
+        SandStorm::instance->autoManipulators.pop_back();
     }
 
     if (IsKeyPressed(KEY_TAB)) //reset sim
-    {
-        PlaySound(engine->resetSFX);
-        engine->autoManipulators.clear();
-        engine->ManipulateCell(false, screenCenter.x, screenCenter.y, Element::Elements::UNOCCUPIED, 256);
-    }
+        SandStorm::instance->ResetSim();
 
     if (IsKeyPressed(KEY_GRAVE)) //toggle ui/debug info
-        engine->showHudInfo = !engine->showHudInfo;
+        SandStorm::instance->showHudInfo = !SandStorm::instance->showHudInfo;
 
     if (IsKeyPressed(KEY_SPACE)) //toggle updating
     {
-        engine->shouldUpdate = !engine->shouldUpdate;
-        engine->skipTimerActive = !engine->shouldUpdate;
+        SandStorm::instance->shouldUpdate = !SandStorm::instance->shouldUpdate;
+        SandStorm::instance->skipTimerActive = !SandStorm::instance->shouldUpdate;
     }
 
     if (IsKeyPressed(KEY_RIGHT)) //go couple frames forward
     {
-        engine->shouldUpdate = true;
-        engine->skipTimerActive = true;
+        SandStorm::instance->shouldUpdate = true;
+        SandStorm::instance->skipTimerActive = true;
     }
 }
