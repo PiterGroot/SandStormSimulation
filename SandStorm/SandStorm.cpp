@@ -161,6 +161,13 @@ void SandStorm::UpdateCell(int x, int y)
             break;
         }
 
+        //swap sand with smoke if sand falls on top of water
+        if (currentCell == 1 && newIndexType == 4)
+        {
+            SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::SMOKE);
+            break;
+        }
+
         //create smoke when water or sand touches 
         bool createObsidianFromSand = currentCell == 1 && newIndexType == 5;
         bool createObsidianFromWater = currentCell == 2 && newIndexType == 5;
