@@ -11,6 +11,7 @@ ElementRules::ElementRules()
     //  4. Add rules for new cell
     //  5. Add color for new cell
     //  6. Bind element to its ruleset
+    //  (optional) 7. bind raw pixel color to cell element for imageimporter
 
     // Initialize rule sets
     sandRules =  { DOWN, DOWN_LEFT, DOWN_RIGHT                     };

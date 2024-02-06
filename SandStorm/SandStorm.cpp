@@ -80,6 +80,7 @@ void SandStorm::Render()
         DrawFPS(0, 0); //draw fps
         DrawText(GetElementString().c_str(), 0, 24, 24, GREEN); //draw current element and brush size
         DrawText(shouldUpdate ? "Active" : "Paused", 256 - 45, 0, 24, GREEN); //draw update state label
+        DrawText(imageImporter->currentImportedImage.c_str(), 0, HEIGHT - 16, 16, GREEN); //draw update state label
     }
 
     //Update auto cell manipulators at end of frame

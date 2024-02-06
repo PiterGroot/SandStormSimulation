@@ -1,19 +1,28 @@
 #pragma once
 
+#include "raylib.h"
 #include <vector>
 #include <string>
+#include "Element.h"
 
 class ImageImporter
 {
 public:
-	ImageImporter(int screenWidth);
-	~ImageImporter();
+    ImageImporter(int screenWidth);
+    ~ImageImporter();
 
-	void ImportImage(int imageIndex);
-	void OnUpdate();
+    void ImportImage(int imageIndex);
+    void OnUpdate();
+
+    std::string currentImportedImage;
 
 private:
-	std::vector<std::string> imageNames;
-	int screenWidth = 0;
-};
+    Element::Elements GetCellElement(Color rawPixelColor);
+    bool CompareColor(Color colorA, Color colorB);\
 
+    int screenWidth = 0;
+    int currentImage = 0;
+    int maxImagesCount = 0;
+    
+    std::vector<std::string> imageNames;
+};
