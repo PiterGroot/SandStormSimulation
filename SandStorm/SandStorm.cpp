@@ -276,7 +276,6 @@ void SandStorm::SetCell(int index, Element::Elements element, bool markUpdated)
     map[index].type = element;
     map[index].isUpdated = markUpdated;
 
-
     //NOTE: little hacky but works for now
     if (element == Element::Elements::STATIONARY_FIRE) map[index].lifeTime = GetRandomValue(75, 275);
     if (element == Element::Elements::FIRE) map[index].lifeTime = GetRandomValue(25, 100);
@@ -360,6 +359,7 @@ void SandStorm::ResetSim()
     imageImporter->currentImportedImage = "";
     autoManipulators.clear();
 
+    PlaySound(SandStorm::instance->resetSFX);
     if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
         int index = 256 + WIDTH * 256;
         pixels[index] = elementRules->GetCellColor(Element::Elements::SAND);
