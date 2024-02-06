@@ -71,10 +71,14 @@ void SandStorm::Render()
     ClearBackground(BLACK);
 
     DrawTexture(screenTexture, 0, 0, WHITE);
-    //draw custom cursor
-    Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
-    DrawTextureEx(cursor, cursorPosition, 0, 1, WHITE);
 
+    int halfBrushSize = brushSize / 2;
+    float offset = brushSize * .2f;
+
+    Rectangle srcRec = Rectangle(0, 0, cursor.width, cursor.height);
+    Rectangle dstRec = Rectangle(mousePosition.x - halfBrushSize, mousePosition.y - halfBrushSize, cursor.width * offset, cursor.height * offset);
+    DrawTexturePro(cursor, srcRec, dstRec, Vector2(brushSize, brushSize), 0, WHITE);
+   
     if (showHudInfo) 
     {
         DrawFPS(0, 0); //draw fps
@@ -274,33 +278,37 @@ void SandStorm::SwapCell(int fromIndex, int toIndex, Element::Elements swapA, El
 //Placing / destroying cells with mouse
 void SandStorm::ManipulateCell(bool state, int xPos, int yPos, Element::Elements placeElement, int overrideBrushSize)
 {
-    int brushSize = overrideBrushSize == 0 ? this->brushSize : overrideBrushSize;
-    for (int x = -brushSize; x < brushSize; x++)
+    int radius = overrideBrushSize == 0 ? this->brushSize : overrideBrushSize;
+    for (int x = -radius; x <= radius; x++)
     {
-        for (int y = -brushSize; y < brushSize; y++)
+        for (int y = -radius; y <= radius; y++)
         {
-            int index = (x + xPos) + WIDTH * (y + yPos);
-            if (IsOutOfBounds(xPos + x, yPos + y)) //check for all brush positions if it is out of bounds
-                continue;
-            
-            if (state) //placing cells 
+            float distance = sqrt(x * x + y * y);
+            if (distance <= radius)
             {
-                //placing fill chance based on current element and brush size
-                float fillChance = (placeElement == Element::Elements::WALL || placeElement == Element::Elements::WOOD) ? cellPlacingNoRandomization : cellPlacingRandomization;
-                if (GetChance(fillChance))
+                int index = (x + xPos) + WIDTH * (y + yPos);
+                if (IsOutOfBounds(xPos + x, yPos + y)) //check for all brush positions if it is out of bounds
+                    continue;
+
+                if (state) //placing cells 
                 {
-                    if (map[index].type == 0)
-                        SetCell(index, placeElement, false);
+                    //placing fill chance based on current element and brush size
+                    float fillChance = (placeElement == Element::Elements::WALL || placeElement == Element::Elements::WOOD) ? cellPlacingNoRandomization : cellPlacingRandomization;
+                    if (GetChance(fillChance))
+                    {
+                        if (map[index].type == 0)
+                            SetCell(index, placeElement, false);
+                    }
                 }
-            }
-            else //destroying cells
-            {
-                if (map[index].type > 0) 
+                else //destroying cells
                 {
-                    SetCell(index, Element::UNOCCUPIED, false);
-                    map[index].isUpdated = false;
-                    map[index].lifeTime = 0;
-                    map[index].updateTick = 0;
+                    if (map[index].type > 0)
+                    {
+                        SetCell(index, Element::UNOCCUPIED, false);
+                        map[index].isUpdated = false;
+                        map[index].lifeTime = 0;
+                        map[index].updateTick = 0;
+                    }
                 }
             }
         }
@@ -325,10 +333,13 @@ void SandStorm::HandleCellSwitching()
 //Helper method for clearing the simulation grid
 void SandStorm::ResetSim()
 {
+    std::fill(std::begin(pixels), std::end(pixels), UNOCCUPIED_CELL);
+    std::fill(std::begin(map), std::end(map), CellInfo());
+ 
     imageImporter->currentImportedImage = "";
-    PlaySound(SandStorm::instance->resetSFX);
     autoManipulators.clear();
-    ManipulateCell(false, WIDTH / 2, HEIGHT / 2, Element::Elements::UNOCCUPIED, WIDTH / 2);
+
+    PlaySound(SandStorm::instance->resetSFX);
 }
 
 //Helper method for creating and exporting screenshots
