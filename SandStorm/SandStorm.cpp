@@ -55,7 +55,7 @@ void SandStorm::Update(float deltaTime)
     {
         for (int x = 0; x < WIDTH; x++)
         {
-            for (int y = 0; y < HEIGHT - 2; y++)
+            for (int y = 0; y < HEIGHT - 1; y++)
             {
                 UpdateCell(x, y);
             }
@@ -372,7 +372,7 @@ void SandStorm::ExportScreenShot()
 //Checks if given position is outside the window
 bool SandStorm::IsOutOfBounds(int posX, int posY)
 {
-    bool outOfBoundsA = posX >= WIDTH || posY > HEIGHT;
+    bool outOfBoundsA = posX >= WIDTH || posY >= HEIGHT;
     bool outOfBoundsB = posX < 0 || posY < 0;
 
     return outOfBoundsA || outOfBoundsB;
