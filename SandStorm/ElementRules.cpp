@@ -14,11 +14,11 @@ ElementRules::ElementRules()
     //  (optional) 7. bind raw pixel color to cell element for imageimporter
 
     // Initialize rule sets
-    sandRules =  { DOWN, DOWN_LEFT, DOWN_RIGHT                     };
-    waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
-    lavaRules =  { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    fireRules =  { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
+    sandRules =  { DOWN, SIDE_DOWN };
+    waterRules = { DOWN, SIDE, SIDE_DOWN };
+    smokeRules = { UP, SIDE_UP, SIDE };
+    lavaRules =  { DOWN, SIDE, SIDE_DOWN };
+    fireRules =  { UP, SIDE_UP, SIDE };
     
     woodRules =  { STAY };
     stationaryFireRules =  { STAY };
@@ -43,18 +43,11 @@ ElementRules::ElementRules()
         { Element::Elements::LAVA,       Color(255, 77, 28, 255)   },
         { Element::Elements::WOOD,       Color(130, 65, 0, 255)    },
     };
-    
+
     // Initialize ruleValues map
     ruleValues = {
         { UP,         Vector2(0, -1) },
-        { RIGHT,      Vector2(1, 0)  },
         { DOWN,       Vector2(0, 1)  },
-        { LEFT,       Vector2(-1, 0) },
-        { UP_RIGHT,   Vector2(1, -1) },
-        { UP_LEFT,    Vector2(-1, -1)},
-        { DOWN_RIGHT, Vector2(1, 1)  },
-        { DOWN_LEFT,  Vector2(-1, 1) },
-        { STAY,       Vector2(0, 0) }
     };
 }
 

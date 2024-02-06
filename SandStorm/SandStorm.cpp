@@ -23,6 +23,7 @@ SandStorm::SandStorm() //constructor
         pixels[i] = UNOCCUPIED_CELL;
     }
 
+
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
     inputHandler = new InputHandler(Vector2(WIDTH / 2, HEIGHT / 2)); //create InputHandler ref
@@ -123,9 +124,29 @@ void SandStorm::UpdateCell(int x, int y)
 
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
-        Vector2 checkVector = elementRules->ruleValues[rule];
-        int xPos = checkVector.x;
-        int yPos = checkVector.y;
+        int xPos = 0;
+        int yPos = 0;
+
+        if (elementRules->ruleValues.contains(rule)) 
+        {
+            Vector2 checkVector = elementRules->ruleValues[rule];
+            xPos = checkVector.x;
+            yPos = checkVector.y;
+        }
+        else if (rule == ElementRules::Rules::SIDE) 
+        {
+            xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
+        }
+        else if (rule == ElementRules::Rules::SIDE_DOWN)  //NOTE: when randomly choosing side look if both options are available to maintain rate of dispersion
+        {
+            xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
+            yPos = 1;
+        }
+        else if (rule == ElementRules::Rules::SIDE_UP)
+        {
+            xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
+            yPos = -1;
+        }
 
         if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
             continue;
@@ -339,7 +360,11 @@ void SandStorm::ResetSim()
     imageImporter->currentImportedImage = "";
     autoManipulators.clear();
 
-    PlaySound(SandStorm::instance->resetSFX);
+    if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+        int index = 256 + WIDTH * 256;
+        pixels[index] = elementRules->GetCellColor(Element::Elements::SAND);
+        map[index].type = 1;
+    }
 }
 
 //Helper method for creating and exporting screenshots
