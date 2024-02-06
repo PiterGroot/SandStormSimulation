@@ -73,7 +73,7 @@ void SandStorm::Render()
     DrawTexture(screenTexture, 0, 0, WHITE);
     //draw custom cursor
     Vector2 cursorPosition = Vector2((int)mousePosition.x - cursorOrigin, (int)mousePosition.y - cursorOrigin);
-    DrawTexture(cursor, cursorPosition.x, cursorPosition.y, WHITE);
+    DrawTextureEx(cursor, cursorPosition, 0, 1, WHITE);
 
     if (showHudInfo) 
     {
@@ -154,6 +154,7 @@ void SandStorm::UpdateCell(int x, int y)
             break;
         }
         
+        //NOTE: Needs refactoring
         #pragma region CellInteractions
         //swap sand with water if sand falls on top of water
         if (currentCell == 1 && newIndexType == 2)
@@ -239,7 +240,7 @@ void SandStorm::UpdateCell(int x, int y)
             }
 
         }
-        #pragma endregion
+        #pragma endregion 
     }
 }
 
@@ -250,14 +251,11 @@ void SandStorm::SetCell(int index, Element::Elements element, bool markUpdated)
     map[index].type = element;
     map[index].isUpdated = markUpdated;
 
-    if (element == Element::Elements::STATIONARY_FIRE)
-        map[index].lifeTime = GetRandomValue(75, 275);
 
-    if (element == Element::Elements::FIRE)
-        map[index].lifeTime = GetRandomValue(25, 100);
-
-    if (element == Element::Elements::WOOD)
-        map[index].lifeTime = GetRandomValue(10, 25);
+    //NOTE: little hacky but works for now
+    if (element == Element::Elements::STATIONARY_FIRE) map[index].lifeTime = GetRandomValue(75, 275);
+    if (element == Element::Elements::FIRE) map[index].lifeTime = GetRandomValue(25, 100);
+    if (element == Element::Elements::WOOD) map[index].lifeTime = GetRandomValue(10, 25);
 }
 
 //Helper method for swapping two cells with each other
@@ -315,31 +313,19 @@ void SandStorm::HandleCellSwitching()
     if (IsKeyDown(KEY_LEFT_CONTROL)) //ignore when holding ctrl (messes with other shortcuts)
         return;
 
-    if (IsKeyPressed(KEY_ONE))
-        currentElement = Element::Elements::SAND;
-
-    if (IsKeyPressed(KEY_TWO))
-        currentElement = Element::Elements::WATER;
-
-    if (IsKeyPressed(KEY_THREE))
-        currentElement = Element::Elements::WALL;
-
-    if (IsKeyPressed(KEY_FOUR))
-        currentElement = Element::Elements::SMOKE;
-
-    if (IsKeyPressed(KEY_FIVE))
-        currentElement = Element::Elements::LAVA;
-    
-    if (IsKeyPressed(KEY_SIX))
-        currentElement = Element::Elements::WOOD;
-
-    if (IsKeyPressed(KEY_SEVEN))
-        currentElement = Element::Elements::FIRE;
+    if (IsKeyPressed(KEY_ONE)) currentElement =   Element::Elements::SAND;
+    if (IsKeyPressed(KEY_TWO)) currentElement =   Element::Elements::WATER;
+    if (IsKeyPressed(KEY_THREE)) currentElement = Element::Elements::WALL;
+    if (IsKeyPressed(KEY_FOUR)) currentElement =  Element::Elements::SMOKE;
+    if (IsKeyPressed(KEY_FIVE)) currentElement =  Element::Elements::LAVA;
+    if (IsKeyPressed(KEY_SIX)) currentElement =   Element::Elements::WOOD;
+    if (IsKeyPressed(KEY_SEVEN))currentElement =  Element::Elements::FIRE;
 }
 
 //Helper method for clearing the simulation grid
 void SandStorm::ResetSim()
 {
+    imageImporter->currentImportedImage = "";
     PlaySound(SandStorm::instance->resetSFX);
     autoManipulators.clear();
     ManipulateCell(false, WIDTH / 2, HEIGHT / 2, Element::Elements::UNOCCUPIED, WIDTH / 2);
