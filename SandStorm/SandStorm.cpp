@@ -360,7 +360,8 @@ void SandStorm::ResetSim()
     autoManipulators.clear();
 
     PlaySound(SandStorm::instance->resetSFX);
-    if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) //temp debugging shortcut to spawn sand cell
+    {
         int index = 256 + WIDTH * 256;
         pixels[index] = elementRules->GetCellColor(Element::Elements::SAND);
         map[index].type = 1;
