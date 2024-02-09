@@ -10,4 +10,9 @@ Current features:
 - Cell Swapping
 - Flexible cell rule system
 - Rendering via texture for least possible draw calls
+
+Features wishlist:
+- Chunking system
+- Sleep state
+  
 #### This project is the predecessor of my old [Unity Falling Sand Engine](https://github.com/PiterGroot/UnityFallingSandEngine)
