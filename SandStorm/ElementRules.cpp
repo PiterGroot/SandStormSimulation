@@ -54,10 +54,8 @@ ElementRules::ElementRules()
 //Returns a randomized color value based on input element
 Color ElementRules::GetCellColor(Element::Elements element)
 {
-    if (element == Element::Elements::UNOCCUPIED)
-        return BLACK;
-    if (element == Element::Elements::OBSIDIAN)
-        return BLACK;
+    if (element == Element::Elements::UNOCCUPIED) return BLACK;
+    if (element == Element::Elements::OBSIDIAN)   return BLACK;
     
     bool isFireElement = element == Element::Elements::STATIONARY_FIRE || element == Element::Elements::FIRE;
     if (isFireElement) //special colors for fire

@@ -23,7 +23,6 @@ SandStorm::SandStorm() //constructor
         pixels[i] = UNOCCUPIED_CELL;
     }
 
-
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
     inputHandler = new InputHandler(Vector2(WIDTH / 2, HEIGHT / 2)); //create InputHandler ref
@@ -122,7 +121,7 @@ void SandStorm::UpdateCell(int x, int y)
     Element::Elements currentElement = static_cast<Element::Elements>(currentCell);
     auto& cellRuleSet = elementRules->getRuleSet[currentElement]; //get the right ruleset based on cell element type
 
-    int despertionRate = 3;
+    int despertionRate = 5;
 
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
@@ -139,7 +138,7 @@ void SandStorm::UpdateCell(int x, int y)
         {
             xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
         }
-        else if (rule == ElementRules::Rules::SIDE_DOWN)  //NOTE: when randomly choosing side look if both options are available to maintain rate of dispersion
+        else if (rule == ElementRules::Rules::SIDE_DOWN) 
         {
             xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
             yPos = 1;
@@ -195,6 +194,21 @@ void SandStorm::UpdateCell(int x, int y)
                 }
                 testIndex = newIndex;
             }
+        }
+        else {
+            if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
+                continue;
+
+            int newIndex = (x + xPos) + WIDTH * (y + yPos);
+            int newIndexType = map[newIndex].type;
+
+            if (newIndexType == 0) //try to go to desired postion based on current rule, if next index is empty
+            {
+                SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
+                SetCell(newIndex, currentElement);
+                break;
+            }
+            break;
         }
         //else {
         //    if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
