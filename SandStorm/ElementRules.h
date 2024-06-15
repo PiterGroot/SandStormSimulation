@@ -14,13 +14,10 @@ public:
 	enum Rules
 	{
 		UP,
-		RIGHT,
 		DOWN,
-		LEFT,
-		UP_RIGHT,
-		UP_LEFT,
-		DOWN_RIGHT,
-		DOWN_LEFT,
+		SIDE,
+		SIDE_UP,
+		SIDE_DOWN,
 		STAY
 	};
 

@@ -11,14 +11,15 @@ ElementRules::ElementRules()
     //  4. Add rules for new cell
     //  5. Add color for new cell
     //  6. Bind element to its ruleset
-    //  (optional) 7. bind raw pixel color to cell element for imageimporter
+    //  (optional) 7. Bind raw pixel color to cell element for imageimporter
+    //  (optional) 8. Add custom cell behaviour to for interaction.
 
     // Initialize rule sets
-    sandRules =  { DOWN, DOWN_LEFT, DOWN_RIGHT                     };
-    waterRules = { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    smokeRules = { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
-    lavaRules =  { DOWN, RIGHT, LEFT, RIGHT, DOWN_LEFT, DOWN_RIGHT };
-    fireRules =  { UP, UP_LEFT, UP_RIGHT, RIGHT, LEFT              };
+    sandRules =  { DOWN, SIDE_DOWN };
+    waterRules = { DOWN, SIDE, SIDE_DOWN };
+    smokeRules = { UP, SIDE_UP, SIDE };
+    lavaRules =  { DOWN, SIDE, SIDE_DOWN };
+    fireRules =  { UP, SIDE_UP, SIDE };
     
     woodRules =  { STAY };
     stationaryFireRules =  { STAY };
@@ -43,28 +44,19 @@ ElementRules::ElementRules()
         { Element::Elements::LAVA,       Color(255, 77, 28, 255)   },
         { Element::Elements::WOOD,       Color(130, 65, 0, 255)    },
     };
-    
+
     // Initialize ruleValues map
     ruleValues = {
         { UP,         Vector2(0, -1) },
-        { RIGHT,      Vector2(1, 0)  },
         { DOWN,       Vector2(0, 1)  },
-        { LEFT,       Vector2(-1, 0) },
-        { UP_RIGHT,   Vector2(1, -1) },
-        { UP_LEFT,    Vector2(-1, -1)},
-        { DOWN_RIGHT, Vector2(1, 1)  },
-        { DOWN_LEFT,  Vector2(-1, 1) },
-        { STAY,       Vector2(0, 0) }
     };
 }
 
 //Returns a randomized color value based on input element
 Color ElementRules::GetCellColor(Element::Elements element)
 {
-    if (element == Element::Elements::UNOCCUPIED)
-        return BLACK;
-    if (element == Element::Elements::OBSIDIAN)
-        return BLACK;
+    if (element == Element::Elements::UNOCCUPIED) return BLACK;
+    if (element == Element::Elements::OBSIDIAN)   return BLACK;
     
     bool isFireElement = element == Element::Elements::STATIONARY_FIRE || element == Element::Elements::FIRE;
     if (isFireElement) //special colors for fire
