@@ -108,7 +108,7 @@ void SandStorm::UpdateCell(int x, int y)
 {
     int oldIndex = x + WIDTH * y;
     int currentCell = map[oldIndex].type;
-    
+
     if (currentCell == 0 || currentCell == 3) //skip air (empty)/wall cells
         return;
 
@@ -121,24 +121,22 @@ void SandStorm::UpdateCell(int x, int y)
     Element::Elements currentElement = static_cast<Element::Elements>(currentCell);
     auto& cellRuleSet = elementRules->getRuleSet[currentElement]; //get the right ruleset based on cell element type
 
-    int despertionRate = 5;
-
     for (const auto& rule : cellRuleSet) //loop through all rules of the ruleset
     {
         int xPos = 0;
         int yPos = 0;
 
-        if (elementRules->ruleValues.contains(rule)) 
+        if (elementRules->ruleValues.contains(rule))
         {
             Vector2 checkVector = elementRules->ruleValues[rule];
             xPos = checkVector.x;
             yPos = checkVector.y;
         }
-        else if (rule == ElementRules::Rules::SIDE) 
+        else if (rule == ElementRules::Rules::SIDE)
         {
             xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
         }
-        else if (rule == ElementRules::Rules::SIDE_DOWN) 
+        else if (rule == ElementRules::Rules::SIDE_DOWN)
         {
             xPos = GetRandomValue(0, 1) == 0 ? -1 : 1;
             yPos = 1;
@@ -149,187 +147,139 @@ void SandStorm::UpdateCell(int x, int y)
             yPos = -1;
         }
 
-        bool left = xPos == -1;
-        bool right = xPos == 1;
+        if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
+            continue;
 
-        if (xPos != 0 && yPos == 0)
+        int newIndex = (x + xPos) + WIDTH * (y + yPos);
+        int newIndexType = map[newIndex].type;
+
+        if (newIndexType == 0) //try to go to desired postion based on current rule, if next index is empty
         {
-            int testIndex = oldIndex;
-            for (size_t i = 0; i < despertionRate; i++)
-            {
-                yPos += i;
-                if (left)
-                    xPos -= i;
-                if (right)
-                    xPos += i;
+            SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
+            SetCell(newIndex, currentElement);
 
-                if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
-                    continue;
+            if (currentCell == 9) {
 
-                int newIndex = (x + xPos) + WIDTH * (y + yPos);
-                int newIndexType = map[newIndex].type;
+                map[newIndex].updateTick = map[oldIndex].updateTick;
+                map[newIndex].lifeTime = map[oldIndex].lifeTime;
+                map[newIndex].updateTick++;
 
-                if (newIndexType == 0) //try to go to desired postion based on current rule, if next index is empty
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
+
+                if (map[newIndex].updateTick == map[newIndex].lifeTime)
                 {
-                    SetCell(testIndex, Element::Elements::UNOCCUPIED, false);
-                    SetCell(newIndex, currentElement);
+                    map[newIndex].updateTick = 0;
+                    map[newIndex].lifeTime = 0;
 
-                    if (currentCell == 9) {
+                    if (!GetChance(80)) SetCell(newIndex, Element::Elements::UNOCCUPIED, true);
+                    else SetCell(newIndex, Element::Elements::SMOKE, true);
 
-                        map[newIndex].updateTick = map[testIndex].updateTick;
-                        map[newIndex].lifeTime = map[testIndex].lifeTime;
-                        map[newIndex].updateTick++;
-
-                        map[testIndex].updateTick = 0;
-                        map[testIndex].lifeTime = 0;
-
-                        if (map[newIndex].updateTick == map[newIndex].lifeTime)
-                        {
-                            map[newIndex].updateTick = 0;
-                            map[newIndex].lifeTime = 0;
-                            SetCell(newIndex, GetChance(90) ? Element::Elements::SMOKE : Element::Elements::UNOCCUPIED, true);
-                            break;
-                        }
-                    }
+                    break;
                 }
-                testIndex = newIndex;
-            }
-        }
-        else {
-            if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
-                continue;
-
-            int newIndex = (x + xPos) + WIDTH * (y + yPos);
-            int newIndexType = map[newIndex].type;
-
-            if (newIndexType == 0) //try to go to desired postion based on current rule, if next index is empty
-            {
-                SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
-                SetCell(newIndex, currentElement);
-                break;
             }
             break;
         }
-        //else {
-        //    if (IsOutOfBounds(xPos + x, yPos + y)) //check if next desired position is out of bounds
-        //        continue;
 
-        //    int newIndex = (x + xPos) + WIDTH * (y + yPos);
-        //    int newIndexType = map[newIndex].type;
-
-        //    if (newIndexType == 0) //try to go to desired postion based on current rule, if next index is empty
-        //    {
-        //        SetCell(oldIndex, Element::Elements::UNOCCUPIED, false);
-        //        SetCell(newIndex, currentElement);
-
-        //        if (currentCell == 9) {
-
-        //            map[newIndex].updateTick = map[oldIndex].updateTick;
-        //            map[newIndex].lifeTime = map[oldIndex].lifeTime;
-        //            map[newIndex].updateTick++;
-
-        //            map[oldIndex].updateTick = 0;
-        //            map[oldIndex].lifeTime = 0;
-
-        //            if (map[newIndex].updateTick == map[newIndex].lifeTime)
-        //            {
-        //                map[newIndex].updateTick = 0;
-        //                map[newIndex].lifeTime = 0;
-        //                SetCell(newIndex, GetChance(90) ? Element::Elements::SMOKE : Element::Elements::UNOCCUPIED, true);
-        //                break;
-        //            }
-        //        }
-        //        break;
-        //    }
-        //}
-
-        //NOTE: Needs refactoring
-        #pragma region CellInteractions
+#pragma region CellInteractions
         //swap sand with water if sand falls on top of water
-        //if (currentCell == 1 && newIndexType == 2)
-        //{
-        //    SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
-        //    break;
-        //}
+        if (currentCell == 1 && newIndexType == 2)
+        {
+            SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::WATER);
+            break;
+        }
 
-        ////swap sand with smoke if sand falls on top of water
-        //if (currentCell == 1 && newIndexType == 4)
-        //{
-        //    SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::SMOKE);
-        //    break;
-        //}
+        //swap sand with smoke if sand falls on top of water
+        if (currentCell == 1 && newIndexType == 4)
+        {
+            SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::SMOKE);
+            break;
+        }
 
-        ////create smoke when water or sand touches 
-        //bool createObsidianFromSand = currentCell == 1 && newIndexType == 5;
-        //bool createObsidianFromWater = currentCell == 2 && newIndexType == 5;
+        //swap sand with fire if sand falls on top of water
+        if (currentCell == 1 && newIndexType == 9)
+        {
+            SwapCell(oldIndex, newIndex, Element::Elements::SAND, Element::Elements::FIRE);
+            break;
+        }
 
-        //if (createObsidianFromSand || createObsidianFromWater)
-        //{
-        //    SetCell(oldIndex, Element::Elements::SMOKE);
-        //    SetCell(newIndex, Element::Elements::OBSIDIAN);
-        //    break;
-        //}
+        //create smoke when water or sand touches 
+        bool createObsidianFromSand = currentCell == 1 && newIndexType == 5;
+        bool createObsidianFromWater = currentCell == 2 && newIndexType == 5;
 
-        //if (currentCell == 5 && newIndexType == 1) //create obsidian when lava touches sand
-        //{
-        //    SetCell(newIndex, Element::Elements::OBSIDIAN);
-        //    break;
-        //}
+        if (createObsidianFromSand || createObsidianFromWater)
+        {
+            SetCell(oldIndex, Element::Elements::SMOKE);
+            SetCell(newIndex, Element::Elements::OBSIDIAN);
+            break;
+        }
 
-        //if (currentCell == 5 && newIndexType == 7) //create fire when lava touches wood
-        //{
-        //    SetCell(newIndex, Element::Elements::STATIONARY_FIRE);
-        //    break;
-        //}
+        //create obsidian when lava touches sand
+        if (currentCell == 5 && newIndexType == 1)
+        {
+            SetCell(newIndex, Element::Elements::OBSIDIAN);
+            break;
+        }
 
-        ////TODDO: Working on fire behaviour needs lots of attention
-        //if (currentCell == 7) 
-        //{
-        //    int upIndex = (x)+WIDTH * (y - 1);
-        //    int downIndex = (x)+WIDTH * (y + 1);
-        //    int leftIndex = (x - 1)+WIDTH * (y);
-        //    int rightIndex = (x + 1)+WIDTH * (y);
+        //create fire when lava touches wood
+        if (currentCell == 5 && newIndexType == 7) 
+        {
+            SetCell(newIndex, Element::Elements::STATIONARY_FIRE);
+            break;
+        }
 
-        //    if (map[upIndex].type == 8 || map[downIndex].type == 8 || map[leftIndex].type == 8 || map[rightIndex].type == 8) 
-        //    {
-        //        map[oldIndex].updateTick++;
+        //initial wood burning
+        if (currentCell == 9) 
+        {
+            int upIndex = oldIndex - HEIGHT;
+            if (map[upIndex].type == 7)
+            {
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
 
-        //        if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
-        //        {
-        //            map[oldIndex].updateTick = 0;
-        //            SetCell(oldIndex, Element::Elements::STATIONARY_FIRE, true);
-        //            break;
-        //        }
-        //    }
-        //}
+                SetCell(oldIndex, Element::Elements::UNOCCUPIED, true);
+                SetCell(upIndex, Element::Elements::STATIONARY_FIRE, true);
+                break;
+            }
+        }
+        
+        //fire spreading logic
+        if (currentCell == 7)
+        {
+            int upIndex = oldIndex - HEIGHT;
+            int downIndex = oldIndex + HEIGHT;
+            int leftIndex = oldIndex - 1;
+            int rightIndex = oldIndex + 1;
 
-        //if (currentCell == 8) //fire despawning
-        //{
-        //    map[oldIndex].updateTick++;
-        //    if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
-        //    {
-        //        map[oldIndex].updateTick = 0;
-        //        map[oldIndex].lifeTime = 0;
-        //        SetCell(oldIndex, GetChance(90) ? Element::Elements::SMOKE : Element::Elements::UNOCCUPIED, true);
-        //        break;
-        //    }
-        //}
+            if (map[upIndex].type == 8 || map[downIndex].type == 8 || map[leftIndex].type == 8 || map[rightIndex].type == 8)
+            {
+                map[oldIndex].updateTick++;
 
-        //if (currentCell == 9) //fire -> wood -> fire
-        //{
-        //    int upIndex = (x)+WIDTH * (y - 1);
-        //    if (map[upIndex].type == 7)
-        //    {
-        //        map[oldIndex].updateTick = 0;
-        //        map[oldIndex].lifeTime = 0;
+                if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
+                {
+                    map[oldIndex].updateTick = 0;
+                    SetCell(oldIndex, Element::Elements::STATIONARY_FIRE, true);
+                    break;
+                }
+            }
+        }
+        
+        //fire despawning
+        if (currentCell == 8) 
+        {
+            map[oldIndex].updateTick++;
+            if (map[oldIndex].updateTick == map[oldIndex].lifeTime)
+            {
+                map[oldIndex].updateTick = 0;
+                map[oldIndex].lifeTime = 0;
+                
+                if (!GetChance(80)) SetCell(newIndex, Element::Elements::UNOCCUPIED, true);
+                else SetCell(newIndex, Element::Elements::SMOKE, true);
 
-        //        SetCell(oldIndex, Element::Elements::UNOCCUPIED, true);
-        //        SetCell(upIndex, Element::Elements::STATIONARY_FIRE, true);
-        //        break;
-        //    }
-
-        //}
-        #pragma endregion 
+                break;
+            }
+        }
+#pragma endregion 
     }
 }
 
@@ -340,7 +290,7 @@ void SandStorm::SetCell(int index, Element::Elements element, bool markUpdated)
     map[index].type = element;
     map[index].isUpdated = markUpdated;
 
-    //NOTE: little hacky but works for now
+    //Initialize dynamic cells with a random life time value
     if (element == Element::Elements::STATIONARY_FIRE) map[index].lifeTime = GetRandomValue(75, 275);
     if (element == Element::Elements::FIRE) map[index].lifeTime = GetRandomValue(25, 100);
     if (element == Element::Elements::WOOD) map[index].lifeTime = GetRandomValue(10, 25);
@@ -415,7 +365,7 @@ void SandStorm::HandleCellSwitching()
    
     if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) //temp debugging shortcut to spawn sand cell
     {
-        Element::Elements debugElement = Element::Elements::WATER;
+        Element::Elements debugElement = Element::Elements::SAND;
         int index = 256 + WIDTH * 256;
         pixels[index] = elementRules->GetCellColor(debugElement);
         map[index].type = debugElement;
