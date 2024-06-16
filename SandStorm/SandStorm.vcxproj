@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="ElementRules.cpp" />
     <ClCompile Include="ImageImporter.cpp" />
@@ -143,6 +144,7 @@
     <ClCompile Include="SandStorm.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CameraController.h" />
     <ClInclude Include="Element.h" />
     <ClInclude Include="ElementRules.h" />
     <ClInclude Include="ImageImporter.h" />

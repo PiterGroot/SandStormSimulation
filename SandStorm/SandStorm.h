@@ -9,6 +9,7 @@
 #include "ElementRules.h"
 #include "InputHandler.h"
 #include "ImageImporter.h"
+#include "CameraController.h"
 
 class SandStorm 
 {
@@ -76,6 +77,7 @@ private:
 
 	InputHandler* inputHandler = nullptr;
 	ElementRules* elementRules = nullptr;
+	CameraController* cameraController = nullptr;
 
 	Color UNOCCUPIED_CELL = Color(0, 0, 0, 255);
 	

@@ -23,10 +23,13 @@ SandStorm::SandStorm() //constructor
         pixels[i] = UNOCCUPIED_CELL;
     }
 
+    Vector2 screenCenter = Vector2(WIDTH / 2, HEIGHT / 2);
+
     screenImage.data = pixels; //update image with black background
     elementRules = new ElementRules(); //create cell rules ref
-    inputHandler = new InputHandler(Vector2(WIDTH / 2, HEIGHT / 2)); //create InputHandler ref
+    inputHandler = new InputHandler(screenCenter); //create InputHandler ref
     imageImporter = new ImageImporter(WIDTH); //create ImageImporter ref
+    cameraController = new CameraController(screenCenter); //create camera controller ref
 
     srand(time(0)); //set randoms seed
     InitAudioDevice();
@@ -46,9 +49,10 @@ SandStorm::~SandStorm() //deconstructor
 void SandStorm::Update(float deltaTime)
 {
     HandleCellSwitching();
-
     mousePosition = GetMousePosition();
+    
     inputHandler->OnUpdate(mousePosition); //update general input checks
+    cameraController->OnUpdate(deltaTime); //update camera controller
 
     //Try update all active cells
     if (shouldUpdate)
@@ -68,6 +72,7 @@ void SandStorm::Update(float deltaTime)
 void SandStorm::Render()
 {
     BeginDrawing();
+    BeginMode2D(cameraController->camera);
     ClearBackground(BLACK);
 
     DrawTexture(screenTexture, 0, 0, WHITE);
@@ -98,6 +103,7 @@ void SandStorm::Render()
         if(shouldUpdate) ManipulateCell(manipulator.mode, xPos, yPos, manipulator.placeElement, manipulator.position.z);
     }
 
+    EndMode2D();
     EndDrawing();
     if (skipTimerActive)
         shouldUpdate = false;

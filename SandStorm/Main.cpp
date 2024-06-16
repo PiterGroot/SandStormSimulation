@@ -1,7 +1,7 @@
 #include "SandStorm.h"
 
-constexpr auto SCREEN_WIDTH = 512;
-constexpr auto SCREEN_HEIGHT = 512;
+constexpr auto SCREEN_WIDTH = 900;
+constexpr auto SCREEN_HEIGHT = 600;
 
 int main()
 {
