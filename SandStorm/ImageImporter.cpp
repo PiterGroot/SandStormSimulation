@@ -5,23 +5,23 @@ ImageImporter::ImageImporter(int screenWidth)
 {
     this->screenWidth = screenWidth;
 
-    std::filesystem::path directoryPath = GetApplicationDirectory(); //define Images path
-    directoryPath /= "Textures\\Images";
+    //std::filesystem::path directoryPath = GetApplicationDirectory(); //define Images path
+    //directoryPath /= "Textures\\Images";
 
-    if (!std::filesystem::exists(directoryPath)) //create 'Images' folder if it doesn't exist
-    {
-        std::filesystem::create_directory(directoryPath);
-        return;
-    }
+    //if (!std::filesystem::exists(directoryPath)) //create 'Images' folder if it doesn't exist
+    //{
+    //    std::filesystem::create_directory(directoryPath);
+    //    return;
+    //}
 
-    for (const auto& possibleImage : std::filesystem::directory_iterator(directoryPath))
-    {
-        if (possibleImage.path().extension() == ".png") //check if file is a png
-        {
-            maxImagesCount++;
-            imageNames.push_back("Textures/Images/" + possibleImage.path().filename().string());
-        }
-    }
+    //for (const auto& possibleImage : std::filesystem::directory_iterator(directoryPath))
+    //{
+    //    if (possibleImage.path().extension() == ".png") //check if file is a png
+    //    {
+    //        maxImagesCount++;
+    //        imageNames.push_back("Textures/Images/" + possibleImage.path().filename().string());
+    //    }
+    //}
 }
 
 ImageImporter::~ImageImporter()
