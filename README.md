@@ -1,3 +1,6 @@
+### Update: I have been working on a new falling sand library called [Avalanche](https://github.com/PiterGroot/avalanche)
+#### This project is the predecessor of my old [Unity Falling Sand Engine](https://github.com/PiterGroot/UnityFallingSandEngine)
+
 ## SandStorm Engine
 ### A falling sand sim made in c++ using Raylib
 
@@ -14,5 +17,3 @@ Current features:
 Features wishlist:
 - Chunking system
 - Sleep state
-  
-#### This project is the predecessor of my old [Unity Falling Sand Engine](https://github.com/PiterGroot/UnityFallingSandEngine)
